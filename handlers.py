@@ -27,6 +27,7 @@ class FSMFillForm(StatesGroup):
     fill_type_of_problem = State()
     fill_comment = State()
     summarize_state = State()
+    everything_is_ok = State()
 
 
 @router.message(CommandStart(),

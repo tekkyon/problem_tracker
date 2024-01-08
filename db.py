@@ -38,10 +38,12 @@ def init_users_tables(db):
 
 def insert_db(db, sku, sku_number, marketplace, date, type_of_problem, comment, type_of_mp):
     with sqlite3.connect(db) as db:
+        date = date.split('/')
+        new_date = f'20{date[0]}-{date[1]}-{date[2]}'
         query = f"""
         INSERT INTO main
         VALUES
-        ('{sku}', '{sku_number}', '{marketplace}', '{date}', '{type_of_problem}', '{comment}', {type_of_mp})
+        ('{sku}', '{sku_number}', '{marketplace}', '{new_date}', '{type_of_problem}', '{comment}', '{type_of_mp}')
         """
 
         db.execute(query)
