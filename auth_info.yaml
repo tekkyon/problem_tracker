@@ -1,0 +1,13 @@
+credentials:
+  usernames:
+    tekkyon:
+      email: deathskilled@gmail.com
+      name: Диянов Владимир
+      password: $2b$12$El9D.ZgF.DjPWbxl/reKTuMc3xB2o9aRzv0sFlBwbGS8fmRQ92qXq
+cookie:
+  expiry_days: 30
+  key: fuckoff69
+  name: sweet_cookie
+preauthorized:
+  emails:
+  - deathskilled@gmail.com
