@@ -105,6 +105,7 @@ columns_list = ['sku_number',
 tab1, tab2, tab3 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки"])
 
 if st.session_state["authentication_status"]:
+    tab1, tab2, tab3 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки"])
     with tab1:
         col1, col2 = st.columns([1, 4])
         with col1:
