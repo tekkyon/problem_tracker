@@ -4,6 +4,10 @@ credentials:
       email: deathskilled@gmail.com
       name: Диянов Владимир
       password: $2b$12$El9D.ZgF.DjPWbxl/reKTuMc3xB2o9aRzv0sFlBwbGS8fmRQ92qXq
+    nicole:
+      email: test@gmail.com
+      name: Nicole
+      password: $2b$12$gQuBC/dxAElTf8AIR05by./5YZnxulgP0gY2k.T/yOGg7rQNXD4fO
 cookie:
   expiry_days: 30
   key: fuckoff69

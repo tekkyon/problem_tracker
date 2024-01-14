@@ -5,7 +5,10 @@ from aiogram.fsm.state import default_state, State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import (CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message)
 
-list_of_auth_users = [784570394]
+from dashboard_functions import render_users, add_pending_user
+
+# list_of_auth_users = [784570394]
+users_df_columns = ['username', 'user_id', 'role']
 
 from lexicon import lexicon_dict
 
@@ -17,9 +20,9 @@ router = Router()
 
 DB = 'greenea_issues.db'
 
-
 class FSMFillForm(StatesGroup):
     try_to_register = State()
+    pending = State()
     fill_sku_number = State()
     fill_marketplace = State()
     fill_marketplace_type = State()
@@ -32,7 +35,10 @@ class FSMFillForm(StatesGroup):
 
 @router.message(CommandStart(),
                 StateFilter(default_state),
-                lambda message: message.from_user.id in list_of_auth_users)
+                lambda message: message.from_user.id in render_users(DB, 'users',
+                                                                     users_df_columns,
+                                                                     list_mode=True,
+                                                                     users='authed'))
 async def process_start_command(message: Message, state: FSMContext):
     register_button = InlineKeyboardButton(
         text='Зарегистрировать проблему',
@@ -54,7 +60,10 @@ async def process_start_command(message: Message, state: FSMContext):
 
 @router.message(CommandStart(),
                 StateFilter(default_state),
-                lambda message: message.from_user.id not in list_of_auth_users)
+                lambda message: message.from_user.id not in render_users(DB,
+                                                                         'users',
+                                                                         users_df_columns,
+                                                                         list_mode=True))
 async def process_start_command(message: Message, state: FSMContext):
     request_auth_button = InlineKeyboardButton(
         text='Запросить авторизацию',
@@ -72,12 +81,51 @@ async def process_start_command(message: Message, state: FSMContext):
              f'<i>Telegram id:</i> {message.from_user.id}',
         reply_markup=markup
     )
-    await state.set_state(FSMFillForm.try_to_register)
+    await state.set_state(FSMFillForm.pending)
+
+
+@router.message(CommandStart(),
+                StateFilter(default_state),
+                lambda message: message.from_user.id not in render_users(DB,
+                                                                         'users',
+                                                                         users_df_columns,
+                                                                         list_mode=True,
+                                                                         users='authed'))
+async def process_start_command(message: Message, state: FSMContext):
+
+    await message.answer(
+        text=f'<b>У Вас еще нет доступа к боту.</b>\n'
+             f'<i>Telegram id:</i> {message.from_user.id}'
+    )
+    await state.clear()
+
+@router.callback_query(StateFilter(FSMFillForm.pending),
+                       F.data.in_(['request_auth']),
+                       lambda message: message.from_user.id not in render_users(DB,
+                                                                                'users',
+                                                                                users_df_columns,
+                                                                                list_mode=True))
+async def process_pending(callback: CallbackQuery, state: FSMContext):
+    user_id = callback.from_user.id
+    username = callback.from_user.first_name
+
+    await add_pending_user(db=DB, username=username, user_id=user_id, table='users', role='pending')
+
+    await callback.message.answer(
+        text='Запрос отправлен.'
+    )
+    await state.clear()
+
+
+
 
 
 @router.callback_query(StateFilter(FSMFillForm.try_to_register),
                        F.data.in_(['register']),
-                       lambda message: message.from_user.id in list_of_auth_users)
+                       lambda message: message.from_user.id in render_users(DB, 'users',
+                                                                            users_df_columns,
+                                                                            list_mode=True,
+                                                                            users='authed'))
 async def process_authed_register_state(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         text='Введите цифры артикула:'
@@ -87,7 +135,7 @@ async def process_authed_register_state(callback: CallbackQuery, state: FSMConte
 
 @router.callback_query(StateFilter(FSMFillForm.try_to_register),
                        F.data.in_(['faq']),
-                       lambda message: message.from_user.id in list_of_auth_users)
+                       lambda message: message.from_user.id in render_users(DB, 'users', users_df_columns, list_mode=True))
 async def process_faq_state(callback: CallbackQuery, state: FSMContext):
     back_button = InlineKeyboardButton(
         text='Назад',
@@ -108,7 +156,7 @@ async def process_faq_state(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(StateFilter(FSMFillForm.try_to_register),
                        F.data.in_(['request_auth']),
-                       lambda message: message.from_user.id not in list_of_auth_users)
+                       lambda message: message.from_user.id not in render_users(DB, 'users', users_df_columns, list_mode=True))
 async def process_request_auth_state(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         text='<b>Отправлен запрос на авторизацию в боте. После получения доступа придет уведомление.</b>'
@@ -118,7 +166,7 @@ async def process_request_auth_state(callback: CallbackQuery, state: FSMContext)
 
 @router.callback_query(StateFilter(FSMFillForm.try_to_register),
                        F.data.in_(['register']),
-                       lambda message: message.from_user.id not in list_of_auth_users)
+                       lambda message: message.from_user.id not in render_users(DB, 'users', users_df_columns, list_mode=True))
 async def process_unauthed_register_state(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         text='<b>У Вас нет доступа к регистрации. Отправьте запрос на авторизацию.</b>'
@@ -147,7 +195,7 @@ async def process_cancel_command_state(message: Message, state: FSMContext):
 
 @router.callback_query(StateFilter(default_state),
                        F.data.in_(['back_to_start']),
-                       lambda message: message.from_user.id in list_of_auth_users)
+                       lambda message: message.from_user.id in render_users(DB, 'users', users_df_columns, list_mode=True))
 async def process_start2_command(message: Message, state: FSMContext):
     register_button = InlineKeyboardButton(
         text='Зарегистрировать проблему',

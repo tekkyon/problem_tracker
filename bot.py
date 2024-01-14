@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import subprocess
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.fsm.state import State, StatesGroup
@@ -27,6 +28,6 @@ async def main() -> None:
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
-
 if __name__ == '__main__':
     asyncio.run(main())
+    # subprocess.run(['streamlit', 'run', r'dashboard.py'])
