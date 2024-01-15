@@ -16,6 +16,39 @@ from lexicon import month_dict, lexicon_dict, numerical_month_dict
 
 import seaborn as sns
 
+hide_streamlit_style = """
+                <style>
+                div[data-testid="stToolbar"] {
+                visibility: hidden;
+                height: 0%;
+                position: fixed;
+                }
+                div[data-testid="stDecoration"] {
+                visibility: hidden;
+                height: 0%;
+                position: fixed;
+                }
+                div[data-testid="stStatusWidget"] {
+                visibility: hidden;
+                height: 0%;
+                position: fixed;
+                }
+                #MainMenu {
+                visibility: hidden;
+                height: 0%;
+                }
+                header {
+                visibility: hidden;
+                height: 0%;
+                }
+                footer {
+                visibility: hidden;
+                height: 0%;
+                }
+                </style>
+                """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 if 'stats_selector' not in st.session_state:
     st.session_state['stats_selector'] = None
 
@@ -73,25 +106,12 @@ if 'authed' not in st.session_state:
 if 'sku_radio_selector' not in st.session_state:
     st.session_state['sku_radio_selector'] = 'По типу проблемы'
 
-# with open('auth_info.yaml') as file:
-#     config = yaml.load(file, Loader=SafeLoader)
 
 db = 'greenea_issues.db'
 
 st.set_page_config(page_title='Problem Tracker Dashboard',
                    layout='wide',
                    initial_sidebar_state='collapsed')
-
-# authenticator = Authenticate(
-#     config['credentials'],
-#     config['cookie']['name'],
-#     config['cookie']['key'],
-#     config['cookie']['expiry_days'],
-#     config['preauthorized']
-# )
-
-# name, authentication_status, username = authenticator.login('Вход в дашборд', 'main')
-
 
 first_date = datetime.date(2022, 12, 13)
 today = datetime.datetime.now()
@@ -570,35 +590,4 @@ st.divider()
 # elif st.session_state["authentication_status"] is None:
 #     st.warning('Please enter your username and password')
 
-hide_streamlit_style = """
-                <style>
-                div[data-testid="stToolbar"] {
-                visibility: hidden;
-                height: 0%;
-                position: fixed;
-                }
-                div[data-testid="stDecoration"] {
-                visibility: hidden;
-                height: 0%;
-                position: fixed;
-                }
-                div[data-testid="stStatusWidget"] {
-                visibility: hidden;
-                height: 0%;
-                position: fixed;
-                }
-                #MainMenu {
-                visibility: hidden;
-                height: 0%;
-                }
-                header {
-                visibility: hidden;
-                height: 0%;
-                }
-                footer {
-                visibility: hidden;
-                height: 0%;
-                }
-                </style>
-                """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
