@@ -70,6 +70,8 @@ if 'graph_radio_selector' not in st.session_state:
 if 'authed' not in st.session_state:
     st.session_state['authed'] = None
 
+if 'sku_radio_selector' not in st.session_state:
+    st.session_state['sku_radio_selector'] = 'По типу проблемы'
 
 # with open('auth_info.yaml') as file:
 #     config = yaml.load(file, Loader=SafeLoader)
@@ -113,7 +115,7 @@ if st.session_state['authed'] is None:
         with st.form('login_form'):
             password_input = st.text_input(label='Пароль для доступа')
 
-            sub_c1, sub_c2, sub_c3 =st.columns([1, 1, 1])
+            sub_c1, sub_c2, sub_c3 = st.columns([1, 1, 1])
             with sub_c2:
                 submitted = st.form_submit_button("Submit")
             if submitted:
@@ -395,21 +397,51 @@ elif st.session_state['authed']:
             df.rename(columns={'type': 'type_of_problem'}, inplace=True)
 
             if st.session_state['period_selector'] == 'За все время':
-                defect_df = df.query('type_of_problem == "defect"').groupby(
-                    by=['sku_number']).size().reset_index()
+                with col1:
+                    st.session_state['sku_radio_selector'] = st.radio('Отобразить:',
+                                                                      options=['По типу проблемы',
+                                                                               'По маркетплейсам'])
 
-                bad_package_df = df.query('type_of_problem == "bad_package"').groupby(
-                    by=['sku_number']).size().reset_index()
+                if st.session_state['sku_radio_selector'] == 'По типу проблемы':
+                    defect_df = df.query('type_of_problem == "defect"').groupby(
+                        by=['sku_number']).size().reset_index()
 
-                agg_df = defect_df.merge(bad_package_df, on='sku_number')
-                agg_df.rename(columns={'sku_number': 'Артикул',
-                                       '0_x': 'Проблемы с товаром',
-                                       '0_y': 'Проблемы со сборкой'},
-                              inplace=True)
-                agg_df = agg_df.set_index(['Артикул'])
-                with col2:
-                    st.dataframe(agg_df, use_container_width=True, hide_index=False)
-                st.session_state['result_df'] = None
+                    bad_package_df = df.query('type_of_problem == "bad_package"').groupby(
+                        by=['sku_number']).size().reset_index()
+
+                    agg_df = defect_df.merge(bad_package_df, on='sku_number')
+                    agg_df.rename(columns={'sku_number': 'Артикул',
+                                           '0_x': 'Проблемы с товаром',
+                                           '0_y': 'Проблемы со сборкой'},
+                                  inplace=True)
+                    agg_df = agg_df.set_index(['Артикул'])
+                    with col2:
+                        st.dataframe(agg_df, use_container_width=True, hide_index=False)
+
+                    st.session_state['result_df'] = None
+
+                if st.session_state['sku_radio_selector'] == 'По маркетплейсам':
+                    with col2:
+                        list_of_markets = list(df['marketplace'].unique())
+                        result_df = pd.DataFrame()
+                        for market in list_of_markets:
+                            market_df = df.query(f'marketplace == "{market}"')
+                            market_df = market_df.groupby(by='sku_number').agg(
+                                market=('comment', 'count')).reset_index()
+                            market_df.rename(columns={'market': lexicon_dict[market]}, inplace=True)
+                            market_df.set_index('sku_number', inplace=True)
+
+                            if len(result_df) == 0:
+                                result_df = market_df
+                            else:
+                                result_df = pd.merge(result_df, market_df, how='outer', on='sku_number')
+
+                        result_df = result_df.fillna(0)
+                        result_df = result_df.reset_index().rename(columns={'sku_number':'Артикул'})
+                        result_df.set_index('Артикул', inplace=True)
+
+                        st.dataframe(result_df, use_container_width=True)
+                        st.session_state['result_df'] = None
 
             if st.session_state['period_selector'] == 'По месяцам':
                 st.session_state['result_df'] = None
@@ -496,8 +528,8 @@ elif st.session_state['authed']:
                          'user_id': st.column_config.TextColumn('Telegram ID'),
                          'role': st.column_config.SelectboxColumn('Авторизация',
                                                                   options=role_options,
-                                                                  required=True,)}
-        with st.form('cheto'):
+                                                                  required=True, )}
+        with st.form('role_form'):
             user_editor = st.data_editor(users_df,
                                          column_config=column_config,
                                          key='user_editor',
@@ -514,17 +546,21 @@ elif st.session_state['authed']:
                     role = st.session_state["user_editor"]['edited_rows'][user]["role"]
                     change_role(user_id=user_id, role=role)
 
-
-
-        # change_role(db, user_id, role)
-
+        st.subheader('Настройки маркетплейсов и тегов')
+        st.caption('Здесь можно будет добавить иные названия маркетов и дополнительные теги для них')
 
         st.subheader('Работа с базой данных')
         st.caption('Тут будет раздел с бэкапом базы')
+        with open("greenea_issues.db", "rb") as fp:
+            btn = st.download_button(
+                label="Скачать базу данных",
+                data=fp,
+                file_name="greenea_issues.db",
+                mime="application/octet-stream"
+            )
 
         st.subheader('Настройки профиля')
         st.caption('Здесь будут настройки профиля')
-        # authenticator.logout('Выйти из профиля', 'main', key='unique_key')
 
 st.divider()
 
