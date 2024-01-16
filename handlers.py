@@ -371,7 +371,7 @@ async def process_simple_calendar(callback_query: CallbackQuery, callback_data: 
     #     locale=await get_user_locale(callback_query.from_user), show_alerts=True
     # )
     calendar = SimpleCalendar(
-            locale='ru_ru.utf-8', show_alerts=True
+            locale="en_US.UTF-8", show_alerts=True
         )
     calendar.set_dates_range(datetime(2022, 1, 1), datetime(2025, 12, 31))
     selected, date = await calendar.process_selection(callback_query, callback_data)
