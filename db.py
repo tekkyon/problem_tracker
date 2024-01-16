@@ -43,7 +43,7 @@ def insert_db(db, sku, sku_number, marketplace, date_str, type_of_problem, comme
         date_str = date_str.split('/')
         today = date.today()
         manager = 'default'
-        new_date = f'20{date_str[0]}-{date_str[1]}-{date_str[2]}'
+        new_date = f'{date_str[0]}-{date_str[1]}-{date_str[2]}'
         query = f"""
         INSERT INTO main
         VALUES

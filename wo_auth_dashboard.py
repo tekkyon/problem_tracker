@@ -16,7 +16,6 @@ from lexicon import month_dict, lexicon_dict, numerical_month_dict
 
 import seaborn as sns
 
-
 if 'stats_selector' not in st.session_state:
     st.session_state['stats_selector'] = None
 
@@ -73,7 +72,6 @@ if 'authed' not in st.session_state:
 
 if 'sku_radio_selector' not in st.session_state:
     st.session_state['sku_radio_selector'] = 'По типу проблемы'
-
 
 db = 'greenea_issues.db'
 
@@ -138,7 +136,7 @@ if st.session_state['authed'] is None:
 
             sub_c1, sub_c2, sub_c3 = st.columns([1, 1, 1])
             with sub_c2:
-                submitted = st.form_submit_button("Submit")
+                submitted = st.form_submit_button("Войти")
             if submitted:
                 if password_input == 'passwordtest123':
                     st.session_state['authed'] = True
@@ -196,8 +194,9 @@ elif st.session_state['authed']:
             df['Дата'] = pd.to_datetime(df['Дата']).dt.date
             st.session_state['total_problems'] = df.shape[0]
             df = df.loc[
-                (df['Дата'] >= st.session_state['day_1']) & (df['Дата'] < st.session_state['day_2'])]
-            df['Дата'] = pd.to_datetime(df['Дата']).dt.date.apply(lambda x: x.strftime('%d/%m/%Y'))
+                (df['Дата'] >= st.session_state['day_1']) & (df['Дата'] <= st.session_state['day_2'])]
+            # df['Дата'] = pd.to_datetime(df['Дата']).dt.date.apply(lambda x: x.strftime('%d/%m/%Y'))
+
             st.session_state['period_problems'] = df.shape[0]
             st.session_state['result_df'] = df
 
@@ -458,7 +457,7 @@ elif st.session_state['authed']:
                                 result_df = pd.merge(result_df, market_df, how='outer', on='sku_number')
 
                         result_df = result_df.fillna(0)
-                        result_df = result_df.reset_index().rename(columns={'sku_number':'Артикул'})
+                        result_df = result_df.reset_index().rename(columns={'sku_number': 'Артикул'})
                         result_df.set_index('Артикул', inplace=True)
 
                         st.dataframe(result_df, use_container_width=True)
@@ -472,7 +471,14 @@ elif st.session_state['authed']:
 
         with col2:
             if st.session_state['result_df'] is not None:
-                st.dataframe(st.session_state['result_df'], hide_index=True, use_container_width=True)
+                column_config = {
+                    'Дата': st.column_config.DateColumn('Дата',
+                                                        format="DD/MM/YYYY")
+                }
+                st.dataframe(st.session_state['result_df'],
+                             hide_index=True,
+                             use_container_width=True,
+                             column_config=column_config)
                 # st.write(st.session_state['result_df'].to_html(index=False), unsafe_allow_html=True)
     with tab2:
         df = render_default_dataframe(db, 'main', columns_list)
@@ -584,11 +590,3 @@ elif st.session_state['authed']:
         st.caption('Здесь будут настройки профиля')
 
 st.divider()
-
-# elif st.session_state["authentication_status"] is False:
-#     st.error('Username/password is incorrect')
-#
-# elif st.session_state["authentication_status"] is None:
-#     st.warning('Please enter your username and password')
-
-

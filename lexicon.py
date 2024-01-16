@@ -17,7 +17,8 @@ lexicon_dict = {'bad_package': 'Проблема со сборкой',
                 'ozon': 'Озон',
                 'ym': 'Яндекс.Маркет',
                 'sber': 'Сбер',
-                'b2b': 'B2B'}
+                'b2b': 'B2B',
+                'nan': 'Пусто'}
 
 numerical_month_dict = {1: 'Январь',
                         2: 'Февраль',

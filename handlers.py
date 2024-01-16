@@ -1,9 +1,14 @@
+from datetime import datetime
+
 from aiogram import F, Router
 from aiogram.filters import Command, CommandStart, StateFilter
+from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state, State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import (CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message)
+from aiogram.types import (CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message, KeyboardButton)
+from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback, DialogCalendar, DialogCalendarCallback, \
+    get_user_locale
 
 from dashboard_functions import render_users, add_pending_user
 
@@ -45,9 +50,14 @@ async def process_start_command(message: Message, state: FSMContext):
         text='Зарегистрировать проблему',
         callback_data='register'
     )
+    dashboard_button = InlineKeyboardButton(
+        text='Открыть дашборд',
+        url='http://31.129.33.52:8501/'
+    )
 
     keyboard: list[list[InlineKeyboardButton]] = [
-        [register_button]
+        [register_button],
+        [dashboard_button]
     ]
 
     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
@@ -339,48 +349,104 @@ async def process_marketplace_type_press(callback: CallbackQuery, state: FSMCont
     info = await state.get_data()
     await callback.message.answer(
         text=f'<b>Выбран артикул:</b> {info["sku_number"]} \n'
-             f'<b>Выбран маркет:</b> {lexicon_dict[info["marketplace"]]}-{info["marketplace_type"]} \n'
-             f'\n'
-             f'Введите цифры дату в формате "дд/мм/гг"')
+             f'<b>Выбран маркет:</b> {lexicon_dict[info["marketplace"]]}-{info["marketplace_type"]} \n',
+        reply_markup=await SimpleCalendar().start_calendar())
 
     await state.set_state(FSMFillForm.fill_date)
 
 
-@router.message(StateFilter(FSMFillForm.fill_date))
-async def process_date_sent(message: Message, state: FSMContext):
-    await state.update_data(date=message.text)
-
-    defect_button = InlineKeyboardButton(
-        text='Проблема с товаром',
-        callback_data='defect'
-    )
-    package_button = InlineKeyboardButton(
-        text='Проблема со сборкой',
-        callback_data='bad_package'
-    )
-    cancel_button = InlineKeyboardButton(
-        text='Отмена',
-        callback_data='cancel'
+####
+@router.callback_query(StateFilter(FSMFillForm.fill_date),
+                       F.data.in_(['calendar']))
+async def process_authed_register_state(callback: CallbackQuery):
+    await callback.message.answer(
+        "Выберите дату:",
+        reply_markup=await SimpleCalendar().start_calendar()
     )
 
-    keyboard: list[list[InlineKeyboardButton]] = [
-        [defect_button, package_button],
-        [cancel_button]
-    ]
 
-    markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
-
-    info = await state.get_data()
-    await message.answer(
-        text=f'<b>Выбран артикул:</b> {info["sku_number"]} \n'
-             f'<b>Выбран маркет:</b> {lexicon_dict[info["marketplace"]]}-{info["marketplace_type"]} \n'
-             f'<b>Выбрана дата:</b> {info["date"]} \n'
-             f'\n'
-             f'Выберите тип проблемы:',
-        reply_markup=markup
+@router.callback_query(SimpleCalendarCallback.filter(), StateFilter(FSMFillForm.fill_date))
+async def process_simple_calendar(callback_query: CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    calendar = SimpleCalendar(
+        locale=await get_user_locale(callback_query.from_user), show_alerts=True
     )
+    calendar.set_dates_range(datetime(2022, 1, 1), datetime(2025, 12, 31))
+    selected, date = await calendar.process_selection(callback_query, callback_data)
+    if selected:
+        defect_button = InlineKeyboardButton(
+            text='Проблема с товаром',
+            callback_data='defect'
+        )
+        package_button = InlineKeyboardButton(
+            text='Проблема со сборкой',
+            callback_data='bad_package'
+        )
+        cancel_button = InlineKeyboardButton(
+            text='Отмена',
+            callback_data='cancel'
+        )
 
-    await state.set_state(FSMFillForm.fill_type_of_problem)
+        keyboard: list[list[InlineKeyboardButton]] = [
+            [defect_button, package_button],
+            [cancel_button]
+        ]
+
+        markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+        data = date.strftime("%d/%m/%Y")
+
+        await state.update_data(date=data)
+        info = await state.get_data()
+
+        await callback_query.message.answer(
+            text=f'<b>Выбран артикул:</b> {info["sku_number"]} \n'
+                 f'<b>Выбран маркет:</b> {lexicon_dict[info["marketplace"]]}-{info["marketplace_type"]} \n'
+                 f'<b>Выбрана дата:</b> {info["date"]} \n'
+                 f'\n'
+                 f'Выберите тип проблемы:',
+            reply_markup=markup
+        )
+
+        await state.set_state(FSMFillForm.fill_type_of_problem)
+
+
+# #####
+#
+# @router.message(StateFilter(FSMFillForm.fill_date))
+# async def process_date_sent(message: Message, state: FSMContext):
+#     await state.update_data(date=message.text)
+#
+#     defect_button = InlineKeyboardButton(
+#         text='Проблема с товаром',
+#         callback_data='defect'
+#     )
+#     package_button = InlineKeyboardButton(
+#         text='Проблема со сборкой',
+#         callback_data='bad_package'
+#     )
+#     cancel_button = InlineKeyboardButton(
+#         text='Отмена',
+#         callback_data='cancel'
+#     )
+#
+#     keyboard: list[list[InlineKeyboardButton]] = [
+#         [defect_button, package_button],
+#         [cancel_button]
+#     ]
+#
+#     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+#
+#     info = await state.get_data()
+#     await message.answer(
+#         text=f'<b>Выбран артикул:</b> {info["sku_number"]} \n'
+#              f'<b>Выбран маркет:</b> {lexicon_dict[info["marketplace"]]}-{info["marketplace_type"]} \n'
+#              f'<b>Выбрана дата:</b> {info["date"]} \n'
+#              f'\n'
+#              f'Выберите тип проблемы:',
+#         reply_markup=markup
+#     )
+#
+#     await state.set_state(FSMFillForm.fill_type_of_problem)
 
 
 @router.callback_query(StateFilter(FSMFillForm.fill_type_of_problem),
