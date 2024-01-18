@@ -3,18 +3,15 @@ import sqlite3
 
 import pandas as pd
 import streamlit as st
-import yaml
-# from streamlit_authenticator import Authenticate
-from yaml.loader import SafeLoader
+
 
 from config import load_config, Config
 
-import altair as alt
 
 from dashboard_functions import render_default_dataframe, render_users, change_role, simple_render_user
 from lexicon import month_dict, lexicon_dict, numerical_month_dict
 
-import seaborn as sns
+from streamlit_telegram_login import TelegramLoginWidgetComponent
 
 if 'stats_selector' not in st.session_state:
     st.session_state['stats_selector'] = None
@@ -72,6 +69,9 @@ if 'authed' not in st.session_state:
 
 if 'sku_radio_selector' not in st.session_state:
     st.session_state['sku_radio_selector'] = 'По типу проблемы'
+
+if 'graph_scale_slider' not in st.session_state:
+    st.session_state['graph_scale_slider'] = 450
 
 db = 'greenea_issues.db'
 
@@ -145,7 +145,7 @@ if st.session_state['authed'] is None:
                     st.error('Введен неверный пароль')
 
 elif st.session_state['authed']:
-    tab1, tab2, tab3 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки", "Для тестов"])
     with tab1:
         col1, col2 = st.columns([1, 4])
         with col1:
@@ -503,12 +503,21 @@ elif st.session_state['authed']:
 
         st.session_state['graph_period_selector'] = st.selectbox(label='Периодичность',
                                                                  options=['По дням',
+                                                                          'По неделям',
                                                                           'По месяцам'])
+        with st.expander(label='Настройки графика'):
+            st.session_state['graph_scale_slider'] = st.slider(label='Высота графика',
+                                                               min_value=300,
+                                                               max_value=750,
+                                                               value=450,
+                                                               step=25)
 
         if st.session_state['graph_period_selector'] == 'По месяцам':
             frequency_graph = 'M'
         elif st.session_state['graph_period_selector'] == 'По дням':
             frequency_graph = 'D'
+        elif st.session_state['graph_period_selector'] == 'По неделям':
+            frequency_graph = 'W'
 
         if st.session_state['graph_selector'] == 'По типу проблемы':
 
@@ -522,7 +531,7 @@ elif st.session_state['authed']:
                               y='Число проблем',
                               color='Тип проблемы',
                               use_container_width=True,
-                              height=600)
+                              height=st.session_state['graph_scale_slider'])
 
         if st.session_state['graph_selector'] == 'Доля по маркетплейсам':
 
@@ -536,7 +545,7 @@ elif st.session_state['authed']:
                               y='Число проблем',
                               color='Маркетплейс',
                               use_container_width=True,
-                              height=600)
+                              height=st.session_state['graph_scale_slider'])
 
     with tab3:
 
@@ -591,4 +600,8 @@ elif st.session_state['authed']:
         st.subheader('Настройки профиля')
         st.caption('Здесь будут настройки профиля')
 
+    with tab4:
+        telegram_login = TelegramLoginWidgetComponent(bot_username="gr_problem_tracker_bot", secret_key="SecretKey")
+        value = telegram_login.button
+        st.write(value)
 st.divider()
