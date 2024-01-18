@@ -12,7 +12,6 @@ from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback, DialogCalen
 
 from dashboard_functions import render_users, add_pending_user
 
-# list_of_auth_users = [784570394]
 users_df_columns = ['username', 'user_id', 'role']
 
 from lexicon import lexicon_dict
@@ -37,6 +36,7 @@ class FSMFillForm(StatesGroup):
     fill_comment = State()
     summarize_state = State()
     everything_is_ok = State()
+    register_again = State()
 
 
 @router.message(CommandStart(),
@@ -525,11 +525,27 @@ async def process_save(callback: CallbackQuery, state: FSMContext):
     type_of_problem = info['type_of_problem']
     type_of_mp = info['marketplace_type']
     comment = info['comment']
+    manager_id = callback.from_user.id
+    insert_db(DB, sku, sku_number, marketplace, date, type_of_problem, comment, type_of_mp, manager_id=manager_id)
 
-    insert_db(DB, sku, sku_number, marketplace, date, type_of_problem, comment, type_of_mp)
-
-    await callback.message.answer(
-        text='<b>Информация о проблеме сохранена.</b>'
+    reg_button = InlineKeyboardButton(
+        text='Зарегистрировать новую проблему',
+        callback_data='register'
+    )
+    dashboard_button = InlineKeyboardButton(
+        text='Открыть дашборд',
+        url='http://31.129.33.52:8501/'
     )
 
-    await state.clear()
+    keyboard: list[list[InlineKeyboardButton]] = [
+        [reg_button],
+        [dashboard_button]
+    ]
+
+    markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+    await callback.message.answer(
+        text='<b>Информация о проблеме сохранена.</b>',
+        reply_markup=markup
+    )
+    await state.set_state(FSMFillForm.try_to_register)

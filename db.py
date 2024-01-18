@@ -38,11 +38,11 @@ def init_users_tables(db):
         db.commit()
 
 
-def insert_db(db, sku, sku_number, marketplace, date_str, type_of_problem, comment, type_of_mp):
+def insert_db(db, sku, sku_number, marketplace, date_str, type_of_problem, comment, type_of_mp, manager_id):
     with sqlite3.connect(db) as db:
         date_str = date_str.split('/')
         today = date.today()
-        manager = 'default'
+
         new_date = f'{date_str[0]}-{date_str[1]}-{date_str[2]}'
         query = f"""
         INSERT INTO main
@@ -55,7 +55,7 @@ def insert_db(db, sku, sku_number, marketplace, date_str, type_of_problem, comme
              '{comment}',
               '{type_of_mp}',
               '{today}',
-              '{manager}')
+              '{manager_id}')
         """
 
         db.execute(query)

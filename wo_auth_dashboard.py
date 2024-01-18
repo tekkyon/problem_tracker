@@ -521,7 +521,8 @@ elif st.session_state['authed']:
                               x='Дата',
                               y='Число проблем',
                               color='Тип проблемы',
-                              use_container_width=True)
+                              use_container_width=True,
+                              height=600)
 
         if st.session_state['graph_selector'] == 'Доля по маркетплейсам':
 
@@ -534,7 +535,8 @@ elif st.session_state['authed']:
                               x='Дата',
                               y='Число проблем',
                               color='Маркетплейс',
-                              use_container_width=True)
+                              use_container_width=True,
+                              height=600)
 
     with tab3:
 
