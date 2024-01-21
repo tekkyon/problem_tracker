@@ -1,11 +1,8 @@
 import sqlite3
-import asyncio
 import pandas as pd
 from datetime import date
 
-
-DB = 'greenea_issues.db'
-
+from config import db
 
 def init_tables(db):
     with sqlite3.connect(db) as db:
@@ -17,6 +14,19 @@ def init_tables(db):
         date TEXT,
         type TEXT,
         comment TEXT)
+        """
+
+        db.execute(query)
+
+        db.commit()
+
+
+def init_lexicon_table(db):
+    with sqlite3.connect(db) as db:
+        query = """
+        CREATE TABLE IF NOT EXISTS lexicon(
+        key TEXT,
+        value TEXT)
         """
 
         db.execute(query)
@@ -72,12 +82,12 @@ def add_column_to_db(db, column_name, table='main'):
     db.commit()
 
 
-def add_user(db, username, user_id, role='manager', table='users'):
+def add_user(db, username, user_id, role='manager', table='users', loc='not_defined'):
     with sqlite3.connect(db) as db:
         query = f"""
         INSERT INTO {table}
         VALUES
-        ('{username}', '{user_id}', '{role}')
+        ('{username}', '{user_id}', '{role}', '{loc}')
         """
 
     db.execute(query)
@@ -91,8 +101,35 @@ def read_users(db, table='users'):
         """
     df = pd.read_sql_query(query, db)
     return df
-#
-#
-# for index, row in read_users(DB).iterrows():
-#     print(row)
+
+
+def get_name_by_id(db, tel_id):
+    with sqlite3.connect(db) as db:
+        query = f"""
+        SELECT * FROM users
+        WHERE user_id = '{tel_id}'
+        """
+    df = pd.read_sql_query(query, db)
+    return df
+
+
+def add_lexicon(db, key, value):
+    with sqlite3.connect(db) as db:
+        query = f"""
+        INSERT INTO lexicon
+        VALUES
+        ('{key}', '{value}')
+        """
+
+    db.execute(query)
+    db.commit()
+
+
+def read_lexicon(db=db):
+    with sqlite3.connect(db) as db:
+        query = f"""
+        SELECT * FROM lexicon
+        """
+        df = pd.read_sql_query(query, db)
+        return df
 

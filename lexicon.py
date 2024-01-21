@@ -1,3 +1,6 @@
+from config import db
+from db import add_lexicon
+
 month_dict = {'January-': 'Январь',
               'February-': 'Февраль',
               'March-': 'Март',
@@ -18,7 +21,8 @@ lexicon_dict = {'bad_package': 'Проблема со сборкой',
                 'ym': 'Яндекс.Маркет',
                 'sber': 'Сбер',
                 'b2b': 'B2B',
-                'nan': 'Пусто'}
+                'nan': 'Пусто',
+                'sku_number': 'Артикул'}
 
 numerical_month_dict = {1: 'Январь',
                         2: 'Февраль',
@@ -33,5 +37,29 @@ numerical_month_dict = {1: 'Январь',
                         11: 'Ноябрь',
                         12: 'Декабрь', }
 
-selector_dict = {'По типу проблемы': 'Тип проблемы',
-                 'По маркетам': 'Маркетплейс'}
+selector_dict: dict[str, str] = {'По типу проблемы': 'Тип проблемы',
+                                 'По маркетам': 'Маркетплейс'}
+
+stat_options: list[str] = ['Общая таблица',
+                           'По типу проблемы',
+                           'По артикулу',
+                           'По группам артикулов']
+
+filter_options: list[str] = ['За все время',
+                             'По месяцам']
+
+columns_list: list[str] = ['sku_number',
+                           'marketplace',
+                           'date',
+                           'type',
+                           'comment']
+
+market_buttons: dict[str, str] = {
+    'btn_1': 'Wildberries',
+    'btn_2': 'Озон',
+    'btn_3': 'Яндекс.Маркет',
+    'btn_4': 'Сбер',
+    'btn_5': 'B2B',
+    'cancel': 'Отмена'
+}
+

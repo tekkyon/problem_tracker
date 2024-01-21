@@ -26,3 +26,6 @@ def load_config(path: str | None = None) -> Config:
             manager_ids=[]
         )
     )
+
+
+db = 'greenea_issues.db'

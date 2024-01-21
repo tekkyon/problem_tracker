@@ -10,13 +10,15 @@ from aiogram.types import (CallbackQuery, InlineKeyboardButton, InlineKeyboardMa
 from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback, DialogCalendar, DialogCalendarCallback, \
     get_user_locale
 
+import lexicon
+from bot_functions import create_inline_kb
 from dashboard_functions import render_users, add_pending_user
 
 users_df_columns = ['username', 'user_id', 'role']
 
 from lexicon import lexicon_dict
 
-from db import insert_db
+from db import insert_db, read_lexicon
 
 storage = MemoryStorage()
 
@@ -37,6 +39,7 @@ class FSMFillForm(StatesGroup):
     summarize_state = State()
     everything_is_ok = State()
     register_again = State()
+    keyboard_builder_test = State()
 
 
 @router.message(CommandStart(),
@@ -52,12 +55,23 @@ async def process_start_command(message: Message, state: FSMContext):
     )
     dashboard_button = InlineKeyboardButton(
         text='Открыть дашборд',
-        url='http://31.129.33.52:8501/'
+        url=f'http://31.129.33.52:8501/?telegram_id={message.from_user.id}'
+    )
+
+    feedback_button = InlineKeyboardButton(
+        text='Обратная связь',
+        url='https://t.me/tekkyon'
+    )
+
+    test_button = InlineKeyboardButton(
+        text='Для тестов',
+        callback_data='test_button'
     )
 
     keyboard: list[list[InlineKeyboardButton]] = [
         [register_button],
-        [dashboard_button]
+        [dashboard_button],
+        [feedback_button]
     ]
 
     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
@@ -371,8 +385,8 @@ async def process_simple_calendar(callback_query: CallbackQuery, callback_data: 
     #     locale=await get_user_locale(callback_query.from_user), show_alerts=True
     # )
     calendar = SimpleCalendar(
-            locale="en_US.UTF-8", show_alerts=True
-        )
+        locale="en_US.UTF-8", show_alerts=True
+    )
     calendar.set_dates_range(datetime(2022, 1, 1), datetime(2025, 12, 31))
     selected, date = await calendar.process_selection(callback_query, callback_data)
     if selected:
@@ -411,45 +425,6 @@ async def process_simple_calendar(callback_query: CallbackQuery, callback_data: 
         )
 
         await state.set_state(FSMFillForm.fill_type_of_problem)
-
-
-# #####
-#
-# @router.message(StateFilter(FSMFillForm.fill_date))
-# async def process_date_sent(message: Message, state: FSMContext):
-#     await state.update_data(date=message.text)
-#
-#     defect_button = InlineKeyboardButton(
-#         text='Проблема с товаром',
-#         callback_data='defect'
-#     )
-#     package_button = InlineKeyboardButton(
-#         text='Проблема со сборкой',
-#         callback_data='bad_package'
-#     )
-#     cancel_button = InlineKeyboardButton(
-#         text='Отмена',
-#         callback_data='cancel'
-#     )
-#
-#     keyboard: list[list[InlineKeyboardButton]] = [
-#         [defect_button, package_button],
-#         [cancel_button]
-#     ]
-#
-#     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
-#
-#     info = await state.get_data()
-#     await message.answer(
-#         text=f'<b>Выбран артикул:</b> {info["sku_number"]} \n'
-#              f'<b>Выбран маркет:</b> {lexicon_dict[info["marketplace"]]}-{info["marketplace_type"]} \n'
-#              f'<b>Выбрана дата:</b> {info["date"]} \n'
-#              f'\n'
-#              f'Выберите тип проблемы:',
-#         reply_markup=markup
-#     )
-#
-#     await state.set_state(FSMFillForm.fill_type_of_problem)
 
 
 @router.callback_query(StateFilter(FSMFillForm.fill_type_of_problem),
@@ -549,3 +524,29 @@ async def process_save(callback: CallbackQuery, state: FSMContext):
         reply_markup=markup
     )
     await state.set_state(FSMFillForm.try_to_register)
+
+
+@router.callback_query(StateFilter(FSMFillForm.try_to_register),
+                       F.data.in_(['test_button']),
+                       lambda message: message.from_user.id in render_users(DB, 'users',
+                                                                            users_df_columns,
+                                                                            list_mode=True,
+                                                                            users='authed'))
+async def process_authed_register_state(callback: CallbackQuery, state: FSMContext):
+    dict_of_buttons = read_lexicon().query('purpose == "marketplace" | key == "cancel"').set_index('key')['value'].to_dict()
+    keyboard = create_inline_kb(2, **dict_of_buttons)
+    await callback.message.answer(
+        text='Укажите маркетплейс:',
+        reply_markup=keyboard
+    )
+    await state.set_state(FSMFillForm.keyboard_builder_test)
+
+@router.callback_query(StateFilter(FSMFillForm.keyboard_builder_test),)
+async def process_marketplace_press(callback: CallbackQuery, state: FSMContext):
+    await state.update_data(marketplace=callback.data)
+
+    info = await state.get_data()
+
+    await callback.message.answer(
+        text=f'{info["marketplace"]}'
+    )
