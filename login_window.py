@@ -10,7 +10,7 @@ def login_form():
         col1, col2, col3 = st.columns([1, 1, 1])
         with col2:
             with st.form('login form'):
-                # telegram_id = st.text_input('Telegram ID')
+                telegram_id = st.text_input('Telegram ID', disabled=True)
                 password = st.text_input('Пароль', type='password')
 
                 enter_button = st.form_submit_button('Войти')
