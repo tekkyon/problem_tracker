@@ -1,22 +1,10 @@
 import streamlit as st
-import time
 
-from cookie_test import cookie_manager
 from graphics_tab import render_graphics_tab
 from login_window import login_form
 from session_state_func import create_session_state
 from settings_tab import render_settings
 from tables_tab import render_tables_tab
-
-# try:
-#     st.set_page_config(page_title='Problem Tracker Dashboard',
-#                    layout='wide',
-#                    initial_sidebar_state='collapsed')
-# except:
-#     time.sleep(0.1)
-#     st.set_page_config(page_title='Problem Tracker Dashboard',
-#                        layout='wide',
-#                        initial_sidebar_state='collapsed')
 
 st.set_page_config(page_title='Problem Tracker Dashboard',
                    layout='wide',

@@ -1,6 +1,5 @@
 import asyncio
 
-import streamlit as st
 import pandas as pd
 import sqlite3
 
@@ -47,7 +46,7 @@ def simple_render_user(db, table, columns_list, list_mode=True, users='all'):
         return df
 
 
-async def add_pending_user(db, username, user_id, table='users', role='pending', location='office'):
+async def add_pending_user(db, username, user_id, table='users', role='pending', location='Офис'):
     with sqlite3.connect(db) as con:
         cursor = con.cursor()
         cursor.execute(f'INSERT INTO {table} VALUES ("{username}", "{user_id}", "{role}", "{location}")')

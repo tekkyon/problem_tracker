@@ -6,9 +6,8 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state, State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import (CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message, KeyboardButton)
-from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback, DialogCalendar, DialogCalendarCallback, \
-    get_user_locale
+from aiogram.types import (CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message)
+from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback
 
 import lexicon
 from bot_functions import create_inline_kb

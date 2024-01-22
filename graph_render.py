@@ -45,7 +45,7 @@ def abs_line_graph(dataframe: pd.DataFrame,
                       color: str,
                       height: st.session_state,
                       legend_pos: str = 'bottom'):
-    line_altair_chart = alt.Chart(dataframe).mark_area().encode(
+    line_altair_chart = alt.Chart(dataframe).mark_area(opacity=0.5, interpolate='basis').encode(
         x=x,
         y=alt.Y(y).stack("normalize"),
         color=alt.Color(color, legend=alt.Legend(orient=legend_pos))

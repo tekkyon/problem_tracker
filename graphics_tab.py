@@ -8,8 +8,6 @@ import altair as alt
 
 from graph_render import render_circle_graph, render_line_graph, abs_line_graph
 
-alt.renderers.set_embed_options(format_locale="ru-RU", time_format_locale="ru-RU")
-
 
 def render_graphics_tab():
     df = render_default_dataframe(db, 'main', lexicon.columns_list)
@@ -24,7 +22,7 @@ def render_graphics_tab():
     df = df.drop(columns=['Комментарий']).sort_values(by='Дата')
 
     st.session_state['graph_selector'] = st.selectbox(label='Какой график построить?',
-                                                      options=['По типу проблемы',
+                                                      options=['Test', 'По типу проблемы',
                                                                'Cтатистика по маркетплейсам',
                                                                'Смешанный'])
 
@@ -45,6 +43,50 @@ def render_graphics_tab():
         frequency_graph = 'D'
     elif st.session_state['graph_period_selector'] == 'По неделям':
         frequency_graph = 'W'
+
+    # if st.session_state['graph_selector'] == 'Test':
+    #     df = df.groupby(by=[pd.Grouper(key='Дата', freq=frequency_graph), 'Тип проблемы']).agg(
+    #         {'Артикул': 'count'}).reset_index()
+    #     df.rename(columns={'Артикул': 'Число проблем'}, inplace=True)
+    #
+    #     nearest = alt.selection_point(nearest=True, on='mouseover',
+    #                                   fields=['Дата'], empty=False)
+    #
+    #     line = alt.Chart(df).mark_line(interpolate='basis').encode(
+    #         x='Дата',
+    #         y='Число проблем',
+    #         color=alt.Color('Тип проблемы', legend=alt.Legend(orient='bottom'))
+    #     )
+    #
+    #     selectors = alt.Chart(df).mark_point().encode(
+    #         x='Дата',
+    #         opacity=alt.value(0),
+    #     ).add_params(
+    #         nearest
+    #     )
+    #
+    #     points = line.mark_point().encode(
+    #         opacity=alt.condition(nearest, alt.value(1), alt.value(0))
+    #     )
+    #
+    #     text = line.mark_text(align='left', dx=5, dy=-5).encode(
+    #         text=alt.condition(nearest, 'Число проблем', alt.value(' '))
+    #     )
+    #
+    #     rules = alt.Chart(df).mark_rule(color='gray').encode(
+    #         x='Дата',
+    #     ).transform_filter(
+    #         nearest
+    #     )
+    #
+    #
+    #     result = alt.layer(
+    #         line, selectors, points, rules, text
+    #     ).properties(
+    #         height=450
+    #     )
+    #
+    #     st.altair_chart(result, use_container_width=True, theme=None)
 
     if st.session_state['graph_selector'] == 'По типу проблемы':
         df = df.groupby(by=[pd.Grouper(key='Дата', freq=frequency_graph), 'Тип проблемы']).agg(

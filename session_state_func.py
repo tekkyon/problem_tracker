@@ -1,9 +1,5 @@
 import streamlit as st
 import datetime
-import time
-
-from cookie_test import cookie_manager
-
 
 def create_session_state():
     if 'stats_selector' not in st.session_state:
@@ -56,18 +52,6 @@ def create_session_state():
 
     if 'graph_radio_abs_selector' not in st.session_state:
         st.session_state['graph_radio_abs_selector'] = 'Относительные значения'
-
-    # if 'cookie_manager' not in st.session_state:
-    #     cookies = cookie_manager.get_all()
-    #     time.sleep(0.5)
-    #     st.session_state['cookie_manager'] = True
-    #
-    # value = cookie_manager.get(cookie='authed')
-    # if value is None:
-    #     if 'authed' not in st.session_state:
-    #         st.session_state['authed'] = False
-    # else:
-    #     st.session_state['authed'] = True
 
     if 'authed' not in st.session_state:
         st.session_state['authed'] = False
