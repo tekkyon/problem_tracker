@@ -22,7 +22,7 @@ def render_graphics_tab():
     df = df.drop(columns=['Комментарий']).sort_values(by='Дата')
 
     st.session_state['graph_selector'] = st.selectbox(label='Какой график построить?',
-                                                      options=['Test', 'По типу проблемы',
+                                                      options=['По типу проблемы',
                                                                'Cтатистика по маркетплейсам',
                                                                'Смешанный'])
 
