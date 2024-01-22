@@ -106,8 +106,38 @@ def render_tables_tab():
             result = render_sku_table(df, group)
             st.dataframe(result, use_container_width=True)
 
-            st.subheader('Группа артикулов ГЛТ 500-600')
+            st.subheader('Группа артикулов 500-599')
             group = [x for x in range(500, 600)]
+            result = render_sku_table(df, group)
+            st.dataframe(result, use_container_width=True)
+
+            st.subheader('Группа артикулов 600-699')
+            group = [606, 610]
+            result = render_sku_table(df, group)
+            st.dataframe(result, use_container_width=True)
+
+            st.subheader('Группа артикулов КА')
+            group = [660, 'ка-954']
+            result = render_sku_table(df, group)
+            st.dataframe(result, use_container_width=True)
+
+            st.subheader('Группа артикулов 700-799')
+            group = [747, 748, 749]
+            result = render_sku_table(df, group)
+            st.dataframe(result, use_container_width=True)
+
+            st.subheader('Группа артикулов 800-899')
+            group = [832, 849, 850,	855, 865]
+            result = render_sku_table(df, group)
+            st.dataframe(result, use_container_width=True)
+
+            st.subheader('Группа артикулов 900-999')
+            group = [945, 950, 954, 972, 997, 998]
+            result = render_sku_table(df, group)
+            st.dataframe(result, use_container_width=True)
+
+            st.subheader('Группа артикулов 1000-1999')
+            group = [1000, 1017, 1084, 1127, 1244, 1380, 1384, 1386]
             result = render_sku_table(df, group)
             st.dataframe(result, use_container_width=True)
 
