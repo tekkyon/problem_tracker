@@ -70,8 +70,7 @@ def render_sku_table(df: pd.DataFrame, group: list):
     list_of_markets = set(df['marketplace'])
     result = pd.DataFrame()
     for market in list_of_markets:
-        group1 = [x for x in range(100, 200)]
-        temp = df.query('sku_number == @group1 & marketplace == @market')
+        temp = df.query('sku_number == @group & marketplace == @market')
         temp = temp.groupby(by=['sku_number']).agg({'marketplace': 'size'}).reset_index()
         temp = temp.rename(columns={'marketplace': market})
         if len(result) == 0:
