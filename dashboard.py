@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 
 from graphics_tab import render_graphics_tab
 from login_window import login_form
@@ -11,6 +12,7 @@ st.set_page_config(page_title='Problem Tracker Dashboard',
                    initial_sidebar_state='collapsed')
 
 create_session_state()
+time.sleep(0.3)
 
 login_form()
 
@@ -23,6 +25,8 @@ if st.session_state['authed']:
         render_graphics_tab()
     with tab3:
         render_settings()
+else:
+    st.write('Попробуйте обновить страницу')
 
 hide_streamlit_style = """
                 <style>
