@@ -2,6 +2,9 @@ import streamlit as st
 import datetime
 
 def create_session_state():
+    if 'authed' not in st.session_state:
+        st.session_state['authed'] = None
+
     if 'stats_selector' not in st.session_state:
         st.session_state['stats_selector'] = None
 
@@ -53,8 +56,6 @@ def create_session_state():
     if 'graph_radio_abs_selector' not in st.session_state:
         st.session_state['graph_radio_abs_selector'] = 'Относительные значения'
 
-    if 'authed' not in st.session_state:
-        st.session_state['authed'] = False
 
     if 'sku_radio_selector' not in st.session_state:
         st.session_state['sku_radio_selector'] = 'По типу проблемы'
