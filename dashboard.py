@@ -12,21 +12,18 @@ st.set_page_config(page_title='Problem Tracker Dashboard',
                    initial_sidebar_state='collapsed')
 
 create_session_state()
-time.sleep(0.3)
 
 login_form()
-
+tab1, tab2, tab3 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки"])
 
 if st.session_state['authed']:
-    tab1, tab2, tab3 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки"])
+    # tab1, tab2, tab3 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки"])
     with tab1:
         render_tables_tab()
     with tab2:
         render_graphics_tab()
     with tab3:
         render_settings()
-else:
-    st.write('Попробуйте обновить страницу')
 
 hide_streamlit_style = """
                 <style>
