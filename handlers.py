@@ -54,7 +54,7 @@ async def process_start_command(message: Message, state: FSMContext):
     )
     dashboard_button = InlineKeyboardButton(
         text='Открыть дашборд',
-        url=f'http://31.129.33.52:8501/?telegram_id={message.from_user.id}'
+        url=f'http://31.129.33.52:8501'
     )
 
     feedback_button = InlineKeyboardButton(
