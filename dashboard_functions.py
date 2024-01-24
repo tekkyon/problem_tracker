@@ -3,6 +3,10 @@ import asyncio
 import pandas as pd
 import sqlite3
 
+import streamlit
+
+import lexicon
+from config import db
 from lexicon import lexicon_dict
 
 
@@ -82,6 +86,19 @@ def render_sku_table(df: pd.DataFrame, group: list):
     result = result.fillna(0).set_index('Артикул')
     return result
 
-def color_marketplace(val):
-    color = 'green' if val else 'red'
-    return f'background-color: {color}'
+def color_marketplace(value):
+    if value == 'Wildberries':
+        color = 'rgba(138, 43, 226,.2)'
+    elif value == 'Озон':
+        color = 'rgba(0, 0, 255,.2)'
+    elif value == 'Яндекс.Маркет':
+        color = 'rgba(255, 255, 0,.2)'
+    return f'background-color: {color}; opacity: 0.1'
+
+def get_monthes(year):
+    df = render_default_dataframe(db, 'main', lexicon.columns_list)
+    month_df = df[df['date'].dt.year == year]
+    min_month = month_df['date'].min().month
+    max_month = month_df['date'].max().month
+    return list(range(min_month, max_month+1))
+

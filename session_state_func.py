@@ -1,6 +1,7 @@
 import streamlit as st
 import datetime
 
+
 def create_session_state():
     if 'authed' not in st.session_state:
         st.session_state['authed'] = None
@@ -14,6 +15,9 @@ def create_session_state():
     if 'day_selector' not in st.session_state:
         st.session_state['day_selector'] = None
 
+    if 'common_tab_selector' not in st.session_state:
+        st.session_state['common_tab_selector'] = None
+
     if 'result_df' not in st.session_state:
         st.session_state['result_df'] = None
 
@@ -25,6 +29,12 @@ def create_session_state():
 
     if 'day_2' not in st.session_state:
         st.session_state['day_2'] = datetime.date.today()
+
+    if 'year_1' not in st.session_state:
+        st.session_state['year_1'] = 2022
+
+    if 'month_1' not in st.session_state:
+        st.session_state['month_1'] = 12
 
     if 'metric_state' not in st.session_state:
         st.session_state['metric_state'] = None
@@ -55,7 +65,6 @@ def create_session_state():
 
     if 'graph_radio_abs_selector' not in st.session_state:
         st.session_state['graph_radio_abs_selector'] = 'Относительные значения'
-
 
     if 'sku_radio_selector' not in st.session_state:
         st.session_state['sku_radio_selector'] = 'По типу проблемы'

@@ -5,7 +5,7 @@ import streamlit as st
 import pandas as pd
 import lexicon
 from config import db
-from dashboard_functions import render_default_dataframe, render_sku_table
+from dashboard_functions import render_default_dataframe, render_sku_table, get_monthes, color_marketplace
 
 first_date = datetime.date(2022, 12, 13)
 today = datetime.datetime.now()
@@ -36,17 +36,67 @@ def render_tables_tab():
                         st.session_state['day_1'] = st.session_state['day_selector'][0]
                         st.session_state['day_2'] = st.session_state['day_selector'][1]
         else:
-            with st.form("my_form"):
-                st.session_state['day_selector'] = st.date_input('Выбор дней:',
-                                                                 (first_date, today),
-                                                                 min_value=first_date,
-                                                                 format="DD.MM.YYYY")
-                submitted = st.form_submit_button("Применить фильтр")
-                if submitted:
-                    st.session_state['day_1'] = st.session_state['day_selector'][0]
-                    st.session_state['day_2'] = st.session_state['day_selector'][1]
+            st.session_state['common_tab_selector'] = st.selectbox('Выбор дней или месяцев',
+                                                                   options=['По дням',
+                                                                            'По месяцам'],
+                                                                   label_visibility='collapsed')
 
-    if st.session_state['stats_selector'] == 'Общая таблица':
+            if st.session_state['common_tab_selector'] == 'По дням':
+                with st.form("my_form"):
+                    st.session_state['day_selector'] = st.date_input('Выбор дней:',
+                                                                     (first_date, today),
+                                                                     min_value=first_date,
+                                                                     format="DD.MM.YYYY")
+                    submitted = st.form_submit_button("Применить фильтр")
+                    if submitted:
+                        st.session_state['day_1'] = st.session_state['day_selector'][0]
+                        st.session_state['day_2'] = st.session_state['day_selector'][1]
+
+            if st.session_state['common_tab_selector'] == 'По месяцам':
+                df = render_default_dataframe(db, 'main', lexicon.columns_list)
+                # df['date'] = pd.to_datetime(df['date']).dt.date
+                first_year = df['date'].min().year
+                this_year = df['date'].max().year
+                year_list = list(range(first_year, this_year + 1))
+                year_list.sort(reverse=True)
+
+                y_m_dct = {}
+                for year in year_list:
+                    lst = get_monthes(year)
+                    y_m_dct[year] = lst
+
+                pcol1, pcol2 = st.columns([1, 1])
+                with pcol1:
+                    st.session_state['year_1'] = st.selectbox('Год',
+                                                              options=y_m_dct.keys(),
+                                                              label_visibility='collapsed')
+                with pcol2:
+
+                    st.session_state['month_1'] = st.selectbox('Месяц',
+                                                              options=y_m_dct[st.session_state['year_1']],
+                                                              label_visibility='collapsed')
+
+                with st.form("my_form2"):
+                    submitted = st.form_submit_button("Применить фильтр", use_container_width=True)
+                    if submitted:
+                        df = df[
+                            (df['date'].dt.year == st.session_state['year_1']) & (df['date'].dt.month == st.session_state[
+                                'month_1'])]
+
+                        df['type'] = df['type'].apply(lambda x: lexicon.lexicon_dict[x])
+                        df['marketplace'] = df['marketplace'].apply(lambda x: lexicon.lexicon_dict[x])
+                        df.rename(columns={'type': 'Тип проблемы',
+                                           'date': 'Дата',
+                                           'marketplace': 'Маркетплейс',
+                                           'sku_number': 'Артикул',
+                                           'comment': 'Комментарий'}, inplace=True)
+                        df['Дата'] = pd.to_datetime(df['Дата']).dt.date
+                        with col2:
+                            # x = df.style.applymap(color_marketplace, subset='Маркетплейс')
+                            # st.session_state['result_df'] = x
+                            st.session_state['result_df'] = df
+
+    if st.session_state['stats_selector'] == 'Общая таблица' and st.session_state['common_tab_selector'] == 'По дням':
 
         df = render_default_dataframe(db, 'main', lexicon.columns_list)
         df['type'] = df['type'].apply(lambda x: lexicon.lexicon_dict[x])
@@ -127,7 +177,7 @@ def render_tables_tab():
             st.dataframe(result, use_container_width=True)
 
             st.subheader('Группа артикулов 800-899')
-            group = [832, 849, 850,	855, 865]
+            group = [832, 849, 850, 855, 865]
             result = render_sku_table(df, group)
             st.dataframe(result, use_container_width=True)
 
