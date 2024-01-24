@@ -13,11 +13,25 @@ st.set_page_config(page_title='Problem Tracker Dashboard',
 
 create_session_state()
 
-login_form()
-tab1, tab2, tab3 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки"])
+if 'password' not in st.session_state:
+    st.session_state['password'] = None
 
-if st.session_state['authed']:
-    # tab1, tab2, tab3 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки"])
+col1, col2, col3 = st.columns([1, 1, 1])
+if st.session_state['password'] is None:
+    with col2:
+        with st.form('login'):
+            password = st.text_input('Пароль', label_visibility='collapsed', type='password')
+
+            sub = st.form_submit_button('Погнали', use_container_width=True)
+            if sub:
+                if password == 'passwordtest123':
+                    st.session_state['password'] = True
+                    st.rerun()
+                else:
+                    st.error('Ошибка')
+
+if st.session_state['password']:
+    tab1, tab2, tab3 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки"])
     with tab1:
         render_tables_tab()
     with tab2:
