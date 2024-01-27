@@ -21,6 +21,9 @@ def create_session_state():
     if 'result_df' not in st.session_state:
         st.session_state['result_df'] = None
 
+    if 'result_graph' not in st.session_state:
+        st.session_state['result_graph'] = None
+
     if 'period_selector' not in st.session_state:
         st.session_state['period_selector'] = None
 
@@ -74,3 +77,24 @@ def create_session_state():
 
     if 'user_id' not in st.session_state:
         st.session_state['user_id'] = None
+
+    if 'graph_month_selector' not in st.session_state:
+        st.session_state['graph_month_selector'] = None
+
+    if 'graph_year_selector' not in st.session_state:
+        st.session_state['graph_year_selector'] = None
+
+    if 'graph_start' not in st.session_state:
+        st.session_state['graph_start'] = None
+
+    if 'graph_end' not in st.session_state:
+        st.session_state['graph_end'] = None
+
+    if 'graph_month_selector_end' not in st.session_state:
+        st.session_state['graph_month_selector_end'] = None
+
+    if 'graph_year_selector_end' not in st.session_state:
+        st.session_state['graph_year_selector_end'] = None
+
+
+

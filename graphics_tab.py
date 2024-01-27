@@ -1,100 +1,151 @@
 import datetime
 
-import pandas as pd
 import streamlit as st
 
-import lexicon
-from config import db
-from dashboard_functions import render_default_dataframe
-import altair as alt
-from pandas.tseries.offsets import DateOffset
-
-from graph_render import render_circle_graph, render_line_graph, abs_line_graph
+from dashboard_functions import get_years, get_months
+from graph_render import draw_problems, draw_markets
 
 
 def render_graphics_tab():
-    df = render_default_dataframe(db, 'main', lexicon.columns_list)
-    df['type'] = df['type'].apply(lambda x: lexicon.lexicon_dict[x])
-    df['marketplace'] = df['marketplace'].apply(lambda x: lexicon.lexicon_dict[x])
-    df.rename(columns={'type': 'Тип проблемы',
-                       'date': 'Дата',
-                       'marketplace': 'Маркетплейс',
-                       'sku_number': 'Артикул',
-                       'comment': 'Комментарий'}, inplace=True)
+    g_col1, g_col2 = st.columns([1, 1])
+    with g_col1:
+        st.session_state['graph_selector'] = st.selectbox('Какой график построить?',
+                                                          options=['По типу проблемы',
+                                                                   'По маркетплейсам'])
 
-    df = df.drop(columns=['Комментарий']).sort_values(by='Дата')
+    with g_col2:
+        st.session_state['graph_period_selector'] = st.selectbox('Периодичность',
+                                                                 options=['По дням месяца',
+                                                                          'По неделям',
+                                                                          'По месяцам'])
+    match st.session_state['graph_period_selector']:
 
-    st.session_state['graph_selector'] = st.selectbox(label='Какой график построить?',
-                                                      options=['По типу проблемы',
-                                                               'Cтатистика по маркетплейсам'])
+        case 'По дням месяца':
+            period = 'day'
+            day_selector = True
+            g_period_col1, g_period_col2 = st.columns([1, 1])
+            with g_period_col1:
+                list_of_years = get_years()
+                list_of_years.sort(reverse=True)
+                st.session_state['graph_year_selector'] = st.selectbox('Год', options=list_of_years, key='ahz')
+            with g_period_col2:
+                list_of_month = get_months(st.session_state['graph_year_selector'], day_selector=day_selector)
+                list_of_month.sort(reverse=True)
+                st.session_state['graph_month_selector'] = st.selectbox('Месяц', options=list_of_month)
 
-    st.session_state['graph_period_selector'] = st.selectbox(label='Периодичность',
-                                                             options=['По дням',
-                                                                      'По неделям',
-                                                                      'По месяцам'])
+            match st.session_state['graph_month_selector']:
+                case 12:
+                    st.session_state['graph_start'] = str(datetime.date(st.session_state['graph_year_selector'],
+                                                                        st.session_state['graph_month_selector'],
+                                                                        1))
+                    st.session_state['graph_end'] = str(datetime.date(st.session_state['graph_year_selector'] + 1,
+                                                                      1,
+                                                                      1))
+                case _:
+                    st.session_state['graph_start'] = str(datetime.date(st.session_state['graph_year_selector'],
+                                                                        st.session_state['graph_month_selector'],
+                                                                        1))
+                    st.session_state['graph_end'] = str(datetime.date(st.session_state['graph_year_selector'],
+                                                                      st.session_state['graph_month_selector'] + 1,
+                                                                      1))
 
-    if st.session_state['graph_selector'] != 'Смешанный':
-        st.session_state['graph_radio_abs_selector'] = st.radio(label='Метод отображения',
-                                                                options=['Относительные значения',
-                                                                         'Абсолютные значения'],
-                                                                horizontal=True,
-                                                                label_visibility='collapsed')
+        case 'По неделям':
+            period = 'week'
+            # g_period_col1, g_period_col2, g_period_col3, g_period_col4 = st.columns([1, 1, 1, 1])
+            # with g_period_col1:
+            #     list_of_years = get_years()
+            #     list_of_years.sort(reverse=True)
+            #     default = list_of_years.index(2022)
+            #     st.session_state['graph_year_selector'] = st.selectbox('Год',
+            #                                                            options=list_of_years,
+            #                                                            index=default)
+            # with g_period_col2:
+            #     list_of_month = get_months(st.session_state['graph_year_selector'])
+            #     list_of_month.sort(reverse=True)
+            #     st.session_state['graph_month_selector'] = st.selectbox('Месяц',
+            #                                                             options=list_of_month)
+            #
+            #     match st.session_state['graph_month_selector']:
+            #         case 12:
+            #             list_of_years = get_years(initial_year=st.session_state['graph_year_selector'] + 1)
+            #         case _:
+            #             list_of_years = get_years(initial_year=st.session_state['graph_year_selector'])
+            # with g_period_col3:
+            #     list_of_years.sort(reverse=True)
+            #     st.session_state['graph_year_selector_end'] = st.selectbox('Год',
+            #                                                                options=list_of_years,
+            #                                                                key='year_end')
+            # with g_period_col4:
+            #     list_of_month = get_months(st.session_state['graph_year_selector_end'])
+            #     st.session_state['graph_month_selector_end'] = st.selectbox('Месяц',
+            #                                                                options=list_of_month,
+            #                                                                key='month_end')
+            #
+            # st.session_state['graph_start'] = str(datetime.date(st.session_state['graph_year_selector'],
+            #                                                     st.session_state['graph_month_selector'],
+            #                                                     1))
+            #
+            # st.session_state['graph_end'] = str(datetime.date(st.session_state['graph_year_selector_end'],
+            #                                                   st.session_state['graph_month_selector_end'],
+            #                                                   1))
+            st.session_state['graph_start'] = '2022-12-13'
+            st.session_state['graph_end'] = str(datetime.date.today())
 
-    if st.session_state['graph_period_selector'] == 'По месяцам':
-        frequency_graph = 'M'
-    elif st.session_state['graph_period_selector'] == 'По дням':
-        frequency_graph = 'D'
-    elif st.session_state['graph_period_selector'] == 'По неделям':
-        frequency_graph = 'W'
+        case 'По месяцам':
+            period = 'month'
+            # g_period_col1, g_period_col2, g_period_col3, g_period_col4 = st.columns([1, 1, 1, 1])
+            # with g_period_col1:
+            #     list_of_years = get_years()
+            #     list_of_years.sort(reverse=True)
+            #     default = list_of_years.index(2022)
+            #     st.session_state['graph_year_selector'] = st.selectbox('Год',
+            #                                                            options=list_of_years,
+            #                                                            index=default)
+            # with g_period_col2:
+            #     list_of_month = get_months(st.session_state['graph_year_selector'])
+            #     list_of_month.sort(reverse=True)
+            #     st.session_state['graph_month_selector'] = st.selectbox('Месяц',
+            #                                                             options=list_of_month)
+            #
+            #     match st.session_state['graph_month_selector']:
+            #         case 12:
+            #             list_of_years = get_years(initial_year=st.session_state['graph_year_selector'] + 1)
+            #         case _:
+            #             list_of_years = get_years(initial_year=st.session_state['graph_year_selector'])
+            # with g_period_col3:
+            #     list_of_years.sort(reverse=True)
+            #     st.session_state['graph_year_selector_end'] = st.selectbox('Год',
+            #                                                                options=list_of_years,
+            #                                                                key='year_end')
+            # with g_period_col4:
+            #     list_of_month = get_months(st.session_state['graph_year_selector_end'])
+            #     st.session_state['graph_year_selector_end'] = st.selectbox('Месяц',
+            #                                                                options=list_of_month,
+            #                                                                key='month_end')
+            #
+            # st.session_state['graph_start'] = str(datetime.date(st.session_state['graph_year_selector'],
+            #                                                     st.session_state['graph_month_selector'],
+            #                                                     1))
+            # #
+            # # st.session_state['graph_end'] = str(datetime.date(st.session_state['graph_year_selector_end'],
+            # #                                                   st.session_state['graph_month_selector_end'],
+            # #                                                   1))
+            st.session_state['graph_start'] = '2022-12-13'
+            st.session_state['graph_end'] = str(datetime.date.today())
 
-    if st.session_state['graph_selector'] == 'По типу проблемы':
-        df = df.groupby(by=[pd.Grouper(key='Дата', freq=frequency_graph), 'Тип проблемы']).agg(
-            {'Артикул': 'count'}).reset_index()
-        df.rename(columns={'Артикул': 'Число проблем'}, inplace=True)
+    match st.session_state['graph_selector']:
 
-        if st.session_state['graph_radio_abs_selector'] == 'Относительные значения':
+        case 'По типу проблемы':
+            st.session_state['result_graph'] = draw_problems(start=st.session_state['graph_start'],
+                                                             end=st.session_state['graph_end'],
+                                                             period=period)
 
-            line = render_line_graph(df,
-                                     'Дата',
-                                     'Число проблем',
-                                     'Тип проблемы',
-                                     st.session_state['graph_scale_slider'])
+        case 'По маркетплейсам':
+            st.session_state['result_graph'] = draw_markets(start=st.session_state['graph_start'],
+                                                            end=st.session_state['graph_end'],
+                                                            period=period)
 
-            result = line
-
-        if st.session_state['graph_radio_abs_selector'] == 'Абсолютные значения':
-            result = abs_line_graph(df,
-                                    'Дата',
-                                    'Число проблем',
-                                    'Тип проблемы',
-                                    st.session_state['graph_scale_slider'])
-
-        st.altair_chart(result, use_container_width=True, theme=None)
-
-    if st.session_state['graph_selector'] == 'Cтатистика по маркетплейсам':
-        df = df.groupby(by=[pd.Grouper(key='Дата', freq=frequency_graph), 'Маркетплейс']).agg(
-            {'Артикул': 'count'}).reset_index()
-        df.rename(columns={'Артикул': 'Число проблем'}, inplace=True)
-
-        if st.session_state['graph_radio_abs_selector'] == 'Относительные значения':
-
-            line = render_line_graph(df,
-                                     'Дата',
-                                     'Число проблем',
-                                     'Маркетплейс',
-                                     st.session_state['graph_scale_slider'],
-                                     marketplace=True)
-
-            result = line
-
-        if st.session_state['graph_radio_abs_selector'] == 'Абсолютные значения':
-            result = abs_line_graph(df,
-                                    'Дата',
-                                    'Число проблем',
-                                    'Маркетплейс',
-                                    st.session_state['graph_scale_slider'],
-                                    marketplace=True)
-
-        st.altair_chart(result, use_container_width=True, theme=None)
-
-
+    if st.session_state['result_graph'] is not None:
+        st.altair_chart(st.session_state['result_graph'],
+                        use_container_width=True,
+                        theme=None)

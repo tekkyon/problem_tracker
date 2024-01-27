@@ -5,7 +5,7 @@ import streamlit as st
 import pandas as pd
 import lexicon
 from config import db
-from dashboard_functions import render_default_dataframe, render_sku_table, get_monthes, color_marketplace
+from dashboard_functions import render_default_dataframe, render_sku_table, get_months, color_marketplace
 
 first_date = datetime.date(2022, 12, 13)
 today = datetime.datetime.now()
@@ -62,7 +62,7 @@ def render_tables_tab():
 
                 y_m_dct = {}
                 for year in year_list:
-                    lst = get_monthes(year)
+                    lst = get_months(year)
                     y_m_dct[year] = lst
 
                 pcol1, pcol2 = st.columns([1, 1])

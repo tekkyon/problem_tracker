@@ -42,6 +42,7 @@ def render_users(db, table, columns_list, list_mode=True, users='all'):
 
         return df
 
+
 def simple_render_user(db, table, columns_list, list_mode=True, users='all'):
     with sqlite3.connect(db) as con:
         sql_query = pd.read_sql(f'SELECT * FROM {table}', con, parse_dates=['date'])
@@ -64,11 +65,13 @@ def change_role(user_id, role, db='greenea_issues.db'):
         cursor.execute(f'UPDATE users SET role = "{role}" WHERE user_id = {user_id}')
         return
 
+
 def change_loc(user_id, location, db='greenea_issues.db'):
     with sqlite3.connect(db) as con:
         cursor = con.cursor()
         cursor.execute(f'UPDATE users SET location = "{location}" WHERE user_id = {user_id}')
         return
+
 
 def render_sku_table(df: pd.DataFrame, group: list):
     list_of_markets = set(df['marketplace'])
@@ -86,6 +89,7 @@ def render_sku_table(df: pd.DataFrame, group: list):
     result = result.fillna(0).set_index('Артикул')
     return result
 
+
 def color_marketplace(value):
     if value == 'Wildberries':
         color = 'rgba(138, 43, 226,.2)'
@@ -95,10 +99,74 @@ def color_marketplace(value):
         color = 'rgba(255, 255, 0,.2)'
     return f'background-color: {color}; opacity: 0.1'
 
-def get_monthes(year):
+
+def get_years(initial_year=2022):
+    df = render_default_dataframe(db, 'main', lexicon.columns_list)
+    min = initial_year
+    max = df['date'].max().year
+    return list(range(min, max + 1))
+
+
+def get_months(year, initial_month=1, day_selector=False):
     df = render_default_dataframe(db, 'main', lexicon.columns_list)
     month_df = df[df['date'].dt.year == year]
-    min_month = month_df['date'].min().month
+    min_month = initial_month
     max_month = month_df['date'].max().month
-    return list(range(min_month, max_month+1))
 
+    if year == 2022:
+        return [12]
+
+    if day_selector:
+        return list(range(min_month, max_month + 1))
+    else:
+        if min_month == max_month:
+            return list(range(min_month, max_month + 2))
+        else:
+            return list(range(min_month, max_month + 1))
+
+
+def render_period_pivot(start='2023-04-01', end='2023-05-01', period='day'):
+    df = render_default_dataframe(db, 'main', lexicon.columns_list)
+    df['type'] = df['type'].apply(lambda x: lexicon.lexicon_dict[x])
+    df['marketplace'] = df['marketplace'].apply(lambda x: lexicon.lexicon_dict[x])
+    df.rename(columns={'type': 'Тип проблемы',
+                       'date': 'Дата',
+                       'marketplace': 'Маркетплейс',
+                       'sku_number': 'Артикул',
+                       'comment': 'Комментарий'}, inplace=True)
+
+    problems = df['Тип проблемы'].unique()
+    markets = df['Маркетплейс'].unique()
+
+    mask = (df['Дата'] >= start) & (df['Дата'] < end)
+
+    df = df.loc[mask]
+
+    match period:
+
+        case 'day':
+            frequency = 'D'
+        case 'week':
+            frequency = 'W'
+        case 'month':
+            frequency = 'M'
+
+    period = pd.DataFrame(pd.date_range(start=start, end=end, freq=frequency))
+    period = period.rename(columns={0: 'Дата'})
+
+    for problem in problems:
+        defect_df = df[df['Тип проблемы'] == problem]
+        defect_df = defect_df.groupby(pd.Grouper(key='Дата', freq=frequency)).agg({'Артикул': 'size'})
+        defect_df = defect_df.rename(columns={'Артикул': problem})
+
+        period = period.merge(defect_df, on='Дата', how='outer')
+
+    for market in markets:
+        market_df = df[df['Маркетплейс'] == market]
+        market_df = market_df.groupby(pd.Grouper(key='Дата', freq=frequency)).agg({'Артикул': 'size'})
+        market_df = market_df.rename(columns={'Артикул': market})
+
+        period = period.merge(market_df, on='Дата', how='outer')
+        period = period.fillna(0)
+
+    return period

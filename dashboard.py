@@ -1,8 +1,6 @@
 import streamlit as st
-import time
 
 from graphics_tab import render_graphics_tab
-from login_window import login_form
 from session_state_func import create_session_state
 from settings_tab import render_settings
 from tables_tab import render_tables_tab
@@ -31,43 +29,45 @@ if st.session_state['password'] is None:
                     st.error('Ошибка')
 
 if st.session_state['password']:
-    tab1, tab2, tab3 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки", 'Test'])
     with tab1:
         render_tables_tab()
     with tab2:
         render_graphics_tab()
     with tab3:
         render_settings()
+    with tab4:
+        pass
 
-hide_streamlit_style = """
-                <style>
-                div[data-testid="stToolbar"] {
-                visibility: hidden;
-                height: 0%;
-                position: fixed;
-                }
-                div[data-testid="stDecoration"] {
-                visibility: hidden;
-                height: 0%;
-                position: fixed;
-                }
-                div[data-testid="stStatusWidget"] {
-                visibility: hidden;
-                height: 0%;
-                position: fixed;
-                }
-                #MainMenu {
-                visibility: hidden;
-                height: 0%;
-                }
-                header {
-                visibility: hidden;
-                height: 0%;
-                }
-                footer {
-                visibility: hidden;
-                height: 0%;
-                }
-                </style>
-                """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+# hide_streamlit_style = """
+#                 <style>
+#                 div[data-testid="stToolbar"] {
+#                 visibility: hidden;
+#                 height: 0%;
+#                 position: fixed;
+#                 }
+#                 div[data-testid="stDecoration"] {
+#                 visibility: hidden;
+#                 height: 0%;
+#                 position: fixed;
+#                 }
+#                 div[data-testid="stStatusWidget"] {
+#                 visibility: hidden;
+#                 height: 0%;
+#                 position: fixed;
+#                 }
+#                 #MainMenu {
+#                 visibility: hidden;
+#                 height: 0%;
+#                 }
+#                 header {
+#                 visibility: hidden;
+#                 height: 0%;
+#                 }
+#                 footer {
+#                 visibility: hidden;
+#                 height: 0%;
+#                 }
+#                 </style>
+#                 """
+# st.markdown(hide_streamlit_style, unsafe_allow_html=True)
