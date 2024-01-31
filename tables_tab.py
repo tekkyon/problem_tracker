@@ -3,9 +3,12 @@ import sqlite3
 
 import streamlit as st
 import pandas as pd
+from pandas import DateOffset
+
 import lexicon
 from config import db
-from dashboard_functions import render_default_dataframe, render_sku_table, get_months, color_marketplace
+from dashboard_functions import render_default_dataframe, render_sku_table, get_months, color_marketplace, get_years
+from table_funcs import render_common_table, render_sku_groups_table
 
 first_date = datetime.date(2022, 12, 13)
 today = datetime.datetime.now()
@@ -54,7 +57,6 @@ def render_tables_tab():
 
             if st.session_state['common_tab_selector'] == 'По месяцам':
                 df = render_default_dataframe(db, 'main', lexicon.columns_list)
-                # df['date'] = pd.to_datetime(df['date']).dt.date
                 first_year = df['date'].min().year
                 this_year = df['date'].max().year
                 year_list = list(range(first_year, this_year + 1))
@@ -62,7 +64,7 @@ def render_tables_tab():
 
                 y_m_dct = {}
                 for year in year_list:
-                    lst = get_months(year)
+                    lst = get_months(year, shift=False)
                     y_m_dct[year] = lst
 
                 pcol1, pcol2 = st.columns([1, 1])
@@ -73,14 +75,15 @@ def render_tables_tab():
                 with pcol2:
 
                     st.session_state['month_1'] = st.selectbox('Месяц',
-                                                              options=y_m_dct[st.session_state['year_1']],
-                                                              label_visibility='collapsed')
+                                                               options=y_m_dct[st.session_state['year_1']],
+                                                               label_visibility='collapsed')
 
                 with st.form("my_form2"):
                     submitted = st.form_submit_button("Применить фильтр", use_container_width=True)
                     if submitted:
                         df = df[
-                            (df['date'].dt.year == st.session_state['year_1']) & (df['date'].dt.month == st.session_state[
+                            (df['date'].dt.year == st.session_state['year_1']) & (
+                                    df['date'].dt.month == st.session_state[
                                 'month_1'])]
 
                         df['type'] = df['type'].apply(lambda x: lexicon.lexicon_dict[x])
@@ -98,20 +101,7 @@ def render_tables_tab():
 
     if st.session_state['stats_selector'] == 'Общая таблица' and st.session_state['common_tab_selector'] == 'По дням':
 
-        df = render_default_dataframe(db, 'main', lexicon.columns_list)
-        df['type'] = df['type'].apply(lambda x: lexicon.lexicon_dict[x])
-        df['marketplace'] = df['marketplace'].apply(lambda x: lexicon.lexicon_dict[x])
-        df.rename(columns={'type': 'Тип проблемы',
-                           'date': 'Дата',
-                           'marketplace': 'Маркетплейс',
-                           'sku_number': 'Артикул',
-                           'comment': 'Комментарий'}, inplace=True)
-        df['Дата'] = pd.to_datetime(df['Дата']).dt.date
-        st.session_state['total_problems'] = df.shape[0]
-        df = df.loc[
-            (df['Дата'] >= st.session_state['day_1']) & (df['Дата'] <= st.session_state['day_2'])]
-        st.session_state['period_problems'] = df.shape[0]
-        st.session_state['result_df'] = df
+        st.session_state['result_df'] = render_common_table()
 
         with col2:
             m_col1, m_col2, m_col3 = st.columns([2, 2, 2])
@@ -125,99 +115,21 @@ def render_tables_tab():
 
     elif st.session_state['stats_selector'] == 'По группам артикулов':
         st.session_state['result_df'] = None
-        with sqlite3.connect(db) as con:
-            sql_query = pd.read_sql('SELECT * FROM main', con, parse_dates=['date'])
-            df = pd.DataFrame(sql_query, columns=['sku', 'sku_number', 'marketplace', 'date', 'type', 'comment'])
-            df.rename(columns={'type': 'type_of_problem'}, inplace=True)
+        df = render_default_dataframe(db, 'main', lexicon.columns_list)
+        df = df.rename(columns={'type': 'type_of_problem'})
 
         with col2:
-            st.subheader('Группа артикулов 100-199')
-            group = [x for x in range(100, 200)]
-            result = render_sku_table(df, group)
-            st.dataframe(result, use_container_width=True)
+            render_sku_groups_table(lexicon.sku_groups, df)
 
-            st.subheader('Группа артикулов 200-299')
-            group = [x for x in range(200, 300)]
-            result = render_sku_table(df, group)
-            st.dataframe(result, use_container_width=True)
-
-            st.subheader('Группа артикулов 300-399')
-            group = [x for x in range(300, 400)]
-            result = render_sku_table(df, group)
-            st.dataframe(result, use_container_width=True)
-
-            st.subheader('Группа артикулов 400-499')
-            group = [400, 401, 402, 403, 404, 468, 473]
-            result = render_sku_table(df, group)
-            st.dataframe(result, use_container_width=True)
-
-            st.subheader('Группа артикулов ГЛТ 411-513')
-            group = [413, 416, 418, 422, 423, 427, 446, 447, 448, 449, 450, 451, 452, 454, 455, 457, 460, 464]
-            result = render_sku_table(df, group)
-            st.dataframe(result, use_container_width=True)
-
-            st.subheader('Группа артикулов 500-599')
-            group = [x for x in range(500, 600)]
-            result = render_sku_table(df, group)
-            st.dataframe(result, use_container_width=True)
-
-            st.subheader('Группа артикулов 600-699')
-            group = [606, 610]
-            result = render_sku_table(df, group)
-            st.dataframe(result, use_container_width=True)
-
-            st.subheader('Группа артикулов КА')
-            group = [660, 'ка-954']
-            result = render_sku_table(df, group)
-            st.dataframe(result, use_container_width=True)
-
-            st.subheader('Группа артикулов 700-799')
-            group = [747, 748, 749]
-            result = render_sku_table(df, group)
-            st.dataframe(result, use_container_width=True)
-
-            st.subheader('Группа артикулов 800-899')
-            group = [832, 849, 850, 855, 865]
-            result = render_sku_table(df, group)
-            st.dataframe(result, use_container_width=True)
-
-            st.subheader('Группа артикулов 900-999')
-            group = [945, 950, 954, 972, 997, 998]
-            result = render_sku_table(df, group)
-            st.dataframe(result, use_container_width=True)
-
-            st.subheader('Группа артикулов 1000-1999')
-            group = [1000, 1017, 1084, 1127, 1244, 1380, 1384, 1386]
-            result = render_sku_table(df, group)
-            st.dataframe(result, use_container_width=True)
 
     elif st.session_state['stats_selector'] == 'По типу проблемы':
+        st.session_state['result_df'] = None
 
         if st.session_state['period_selector'] == 'За все время':
-            df = render_default_dataframe(db, 'main', lexicon.columns_list)
-            df.rename(columns={'type': 'type_of_problem'}, inplace=True)
-
-            defect_df = df.query('type_of_problem == "defect"').groupby(
-                by=['marketplace']).size().reset_index()
-
-            bad_package_df = df.query('type_of_problem == "bad_package"').groupby(
-                by=['marketplace']).size().reset_index()
-            with col2:
-                df1 = defect_df.T.rename(index={0: 'Проблема с товаром'})
-                df2 = bad_package_df.T.iloc[1:].rename(index={0: 'Проблема со сборкой'})
-                new = pd.concat([df1, df2])
-                new.columns = new.iloc[0]
-                new.columns = list(map(lambda x: lexicon.lexicon_dict[x], new.columns))
-                new = new.iloc[1:]
-                st.dataframe(new, hide_index=False, use_container_width=True)
-
-            st.session_state['result_df'] = None
-
-        if st.session_state['period_selector'] == 'По месяцам':
             with col1:
                 st.session_state['delta_option'] = st.radio(label='type of delta',
                                                             options=['Абсолютная разница', 'Разница в процентах'],
-                                                            label_visibility='hidden')
+                                                            label_visibility='collapsed')
 
             df = render_default_dataframe(db, 'main', lexicon.columns_list)
             df.rename(columns={'type': 'type_of_problem'}, inplace=True)
@@ -226,7 +138,6 @@ def render_tables_tab():
             list_of_markets = list(df['marketplace'].unique())
 
             with col2:
-                list_of_month = []
                 for date in df['month&year'].unique():
                     month_df = pd.DataFrame(columns=['Маркетплейс', 'Проблема с товаром', 'Проблема со сборкой'])
 
@@ -335,8 +246,158 @@ def render_tables_tab():
 
             st.session_state['total_month_before'] = None
 
-        if st.session_state['period_selector'] == 'По дням':
-            st.session_state['result_df'] = None
+        if st.session_state['period_selector'] == 'По месяцам':
+            with col1:
+                list_of_years = get_years()
+                st.session_state['table_year_selector'] = st.selectbox(label='filter year',
+                                                                       options=list_of_years,
+                                                                       label_visibility='collapsed')
+
+                list_of_month = get_months(st.session_state['table_year_selector'],
+                                           shift=False)
+
+                list_of_month = list(map(lambda x: lexicon.numerical_month_dict[x], list_of_month))
+
+                st.session_state['table_month_selector'] = st.selectbox(label='filter month',
+                                                                        options=list_of_month,
+                                                                        label_visibility='collapsed')
+                st.session_state['table_month_selector'] = [i for i in lexicon.numerical_month_dict if
+                                                            lexicon.numerical_month_dict[i] == st.session_state[
+                                                                'table_month_selector']][0]
+
+                month = st.session_state['table_month_selector']
+                year = st.session_state['table_year_selector']
+
+                st.session_state['delta_option'] = st.radio(label='type of delta',
+                                                            options=['Абсолютная разница', 'Разница в процентах'],
+                                                            label_visibility='collapsed')
+
+            if month < 10:
+                selected_date_string = f'{year}-0{month}'
+            else:
+                selected_date_string = f'{year}-{month}'
+
+            df = render_default_dataframe(db, 'main', lexicon.columns_list)
+            df.rename(columns={'type': 'type_of_problem'}, inplace=True)
+
+            df['month&year'] = df['date'].dt.to_period('M')
+            df['year'] = df['date'].dt.year
+
+            list_of_markets = list(df['marketplace'].unique())
+
+            with col2:
+                for date in df['month&year'].unique():
+                    flag = str(date) == selected_date_string
+                    month_df = pd.DataFrame(columns=['Маркетплейс', 'Проблема с товаром', 'Проблема со сборкой'])
+
+                    if flag:
+                        st.subheader(f'{lexicon.numerical_month_dict[date.month]} {str(date.year)}')
+
+                    temp = df.loc[(df['date'].dt.month == date.month) & (df['date'].dt.year == date.year)]
+                    for market in list_of_markets:
+                        qny_defect = temp.query(f'type_of_problem == "defect" & marketplace == "{market}"').shape[0]
+
+                        bad_package = \
+                            temp.query(f'type_of_problem == "bad_package" & marketplace == "{market}"').shape[0]
+
+                        data = {'Маркетплейс': lexicon.lexicon_dict[market],
+                                'Проблема с товаром': qny_defect,
+                                'Проблема со сборкой': bad_package}
+
+                        month_df.loc[len(month_df)] = data
+
+                    total_this_month = month_df['Проблема с товаром'].sum() + month_df['Проблема со сборкой'].sum()
+                    defect_this_month = month_df['Проблема с товаром'].sum()
+                    package_this_month = month_df['Проблема со сборкой'].sum()
+
+                    if st.session_state['total_month_before'] is None:
+                        if st.session_state['delta_option'] == 'Абсолютная разница':
+                            total_delta = 0
+                        else:
+                            total_delta = '0%'
+
+                    else:
+                        if st.session_state['delta_option'] == 'Абсолютная разница':
+                            total_delta = int(total_this_month - st.session_state['total_month_before'])
+                        else:
+                            try:
+                                total_delta = round(float(
+                                    (total_this_month - st.session_state['total_month_before']) /
+                                    st.session_state[
+                                        'total_month_before'] * 100), 2)
+                                total_delta = f'{total_delta}%'
+                            except:
+                                total_delta = '0%'
+
+                    if st.session_state['defect_month_before'] is None:
+                        if st.session_state['delta_option'] == 'Абсолютная разница':
+                            defect_delta = 0
+                        else:
+                            defect_delta = '0%'
+
+                    else:
+                        if st.session_state['delta_option'] == 'Абсолютная разница':
+                            defect_delta = int(defect_this_month - st.session_state['defect_month_before'])
+                        else:
+                            try:
+                                defect_delta = round(float(
+                                    (defect_this_month - st.session_state['defect_month_before']) /
+                                    st.session_state['defect_month_before'] * 100), 2)
+                                defect_delta = f'{defect_delta}%'
+                            except:
+                                defect_delta = '0%'
+
+                    if st.session_state['package_month_before'] is None:
+                        if st.session_state['delta_option'] == 'Абсолютная разница':
+                            package_delta = 0
+                        else:
+                            package_delta = '0%'
+
+                    else:
+                        if st.session_state['delta_option'] == 'Абсолютная разница':
+                            package_delta = int(package_this_month - st.session_state['package_month_before'])
+                        else:
+                            try:
+                                package_delta = round(float(
+                                    (package_this_month - st.session_state['package_month_before']) /
+                                    st.session_state['package_month_before'] * 100), 2)
+                                package_delta = f'{package_delta}%'
+                            except:
+                                package_delta = '0%'
+                    st.session_state['total_month_before'] = total_this_month
+                    st.session_state['defect_month_before'] = defect_this_month
+                    st.session_state['package_month_before'] = package_this_month
+
+                    if flag:
+                        m_col1, m_col2, m_col3 = st.columns([2, 2, 2])
+                        with m_col1:
+                            st.metric('Количество проблем за период',
+                                      total_this_month,
+                                      total_delta,
+                                      delta_color='inverse')
+
+                        with m_col2:
+                            st.metric('Проблемы с товаром',
+                                      defect_this_month,
+                                      defect_delta,
+                                      delta_color='inverse')
+
+                        with m_col3:
+                            st.metric('Проблемы со сборкой',
+                                      package_this_month,
+                                      package_delta,
+                                      delta_color='inverse')
+                        st.table(month_df.set_index('Маркетплейс'))
+                        st.session_state['total_month_before'] = None
+                        st.session_state['defect_month_before'] = None
+                        st.session_state['package_month_before'] = None
+                        break
+
+            st.session_state['defect_month_before'] = None
+
+            st.session_state['package_month_before'] = None
+
+            st.session_state['total_month_before'] = None
 
     elif st.session_state['stats_selector'] == 'По артикулу':
         df = render_default_dataframe(db, 'main', lexicon.columns_list)

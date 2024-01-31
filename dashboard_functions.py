@@ -100,14 +100,18 @@ def color_marketplace(value):
     return f'background-color: {color}; opacity: 0.1'
 
 
-def get_years(initial_year=2022):
+def get_years(initial_year=2022, reverse=False):
     df = render_default_dataframe(db, 'main', lexicon.columns_list)
     min = initial_year
     max = df['date'].max().year
-    return list(range(min, max + 1))
+
+    result = list(range(min, max + 1))
+    result.sort(reverse=reverse)
+
+    return result
 
 
-def get_months(year, initial_month=1, day_selector=False):
+def get_months(year, initial_month=1, day_selector=False, shift=True):
     df = render_default_dataframe(db, 'main', lexicon.columns_list)
     month_df = df[df['date'].dt.year == year]
     min_month = initial_month
@@ -118,9 +122,10 @@ def get_months(year, initial_month=1, day_selector=False):
 
     if day_selector:
         return list(range(min_month, max_month + 1))
+
     else:
         if min_month == max_month:
-            return list(range(min_month, max_month + 2))
+            return list(range(min_month, max_month + 1 + shift))
         else:
             return list(range(min_month, max_month + 1))
 

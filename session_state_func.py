@@ -96,5 +96,15 @@ def create_session_state():
     if 'graph_year_selector_end' not in st.session_state:
         st.session_state['graph_year_selector_end'] = None
 
+    if 'table_year_selector' not in st.session_state:
+        st.session_state['table_year_selector'] = None
 
+    if 'table_month_selector' not in st.session_state:
+        st.session_state['table_month_selector'] = None
+
+    if 'show_month' not in st.session_state:
+        st.session_state['show_month'] = False
+
+    if 'result_table' not in st.session_state:
+        st.session_state['result_table'] = None
 

@@ -31,7 +31,7 @@ def render_graphics_tab():
             with g_period_col2:
                 list_of_month = get_months(st.session_state['graph_year_selector'], day_selector=day_selector)
                 list_of_month.sort(reverse=True)
-                st.session_state['graph_month_selector'] = st.selectbox('Месяц', options=list_of_month)
+                st.session_state['graph_month_selector'] = st.selectbox('Месяц', options=list_of_month, key='smrndm')
 
             match st.session_state['graph_month_selector']:
                 case 12:

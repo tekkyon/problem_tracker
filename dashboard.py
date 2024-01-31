@@ -4,6 +4,7 @@ from graphics_tab import render_graphics_tab
 from session_state_func import create_session_state
 from settings_tab import render_settings
 from tables_tab import render_tables_tab
+from test_render import render_test
 
 st.set_page_config(page_title='Problem Tracker Dashboard',
                    layout='wide',
@@ -29,15 +30,14 @@ if st.session_state['password'] is None:
                     st.error('Ошибка')
 
 if st.session_state['password']:
-    tab1, tab2, tab3, tab4 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки", 'Test'])
+    tab1, tab2, tab3 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки"])
     with tab1:
         render_tables_tab()
     with tab2:
         render_graphics_tab()
     with tab3:
         render_settings()
-    with tab4:
-        pass
+
 
 # hide_streamlit_style = """
 #                 <style>

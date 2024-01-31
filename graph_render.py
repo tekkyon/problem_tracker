@@ -132,10 +132,6 @@ def draw_markets(start='2022-12-01',
         ['Wildberries',
          'Озон',
          'ЯндексМаркет']
-    ).mark_line().encode(
-        x='Дата',
-        y='value:Q',
-        color='key:N'
     ).mark_line(opacity=0.75,
                 interpolate='monotone',
                 point=True).encode(
@@ -145,3 +141,22 @@ def draw_markets(start='2022-12-01',
     )
 
     return result
+
+def draw_barchart(start='2024-01-01',
+                 end='2024-01-31',
+                 period='day'):
+    source = render_period_pivot(start=start, end=end, period=period)
+    source['Дата'] = source['Дата'].dt.date
+
+    domain = ['Проблема с товаром', 'Проблема со сборкой']
+    range_ = ['#0000FF', 'firebrick']
+
+    highlight = alt.selection_point()
+
+    base = alt.Chart(source).mark_bar(
+    ).encode(
+        x='Дата',
+        y='К'
+    )
+
+    return base
