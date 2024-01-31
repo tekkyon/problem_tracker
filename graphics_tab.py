@@ -2,6 +2,7 @@ import datetime
 
 import streamlit as st
 
+import lexicon
 from dashboard_functions import get_years, get_months
 from graph_render import draw_problems, draw_markets
 
@@ -31,7 +32,13 @@ def render_graphics_tab():
             with g_period_col2:
                 list_of_month = get_months(st.session_state['graph_year_selector'], day_selector=day_selector)
                 list_of_month.sort(reverse=True)
+
+                list_of_month = list(map(lambda x: lexicon.numerical_month_dict[x], list_of_month))
+
                 st.session_state['graph_month_selector'] = st.selectbox('Месяц', options=list_of_month, key='smrndm')
+                st.session_state['graph_month_selector'] = [i for i in lexicon.numerical_month_dict if
+                                                            lexicon.numerical_month_dict[i] == st.session_state[
+                                                                'graph_month_selector']][0]
 
             match st.session_state['graph_month_selector']:
                 case 12:
