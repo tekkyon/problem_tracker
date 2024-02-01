@@ -30,13 +30,15 @@ if st.session_state['password'] is None:
                     st.error('Ошибка')
 
 if st.session_state['password']:
-    tab1, tab2, tab3 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки"])
+    tab1, tab2, tab3, test_tab = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки", 'Для тестов'])
     with tab1:
         render_tables_tab()
     with tab2:
         render_graphics_tab()
     with tab3:
         render_settings()
+    with test_tab:
+        render_test()
 
 
 # hide_streamlit_style = """
