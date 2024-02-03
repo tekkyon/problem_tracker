@@ -7,6 +7,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
 
 import handlers
+import bitrix_handlers
 from config import load_config, Config
 
 DB = 'greenea_issues.db'
@@ -23,7 +24,8 @@ async def main() -> None:
 
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
-    dp.include_router(handlers.router, )
+    dp.include_router(handlers.router)
+    dp.include_router(bitrix_handlers.router)
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)

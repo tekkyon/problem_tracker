@@ -1,9 +1,7 @@
 import datetime
-import sqlite3
 
 import streamlit as st
 import pandas as pd
-from pandas import DateOffset
 
 import lexicon
 from config import db
@@ -95,9 +93,16 @@ def render_tables_tab():
                                            'comment': 'Комментарий'}, inplace=True)
                         df['Дата'] = pd.to_datetime(df['Дата']).dt.date
                         with col2:
-                            # x = df.style.applymap(color_marketplace, subset='Маркетплейс')
-                            # st.session_state['result_df'] = x
                             st.session_state['result_df'] = df
+                            st.session_state['period_problems'] = df.shape[0]
+                with col2:
+                    m_col1, m_col2, m_col3 = st.columns([2, 2, 2])
+                    with m_col1:
+                        st.metric(label="Общее количество проблем",
+                                  value=st.session_state['total_problems'])
+                    with m_col2:
+                        st.metric(label="Количество за выбранный период",
+                                  value=st.session_state['period_problems'])
 
     if st.session_state['stats_selector'] == 'Общая таблица' and st.session_state['common_tab_selector'] == 'По дням':
 
@@ -416,12 +421,13 @@ def render_tables_tab():
                 bad_package_df = df.query('type_of_problem == "bad_package"').groupby(
                     by=['sku_number']).size().reset_index()
 
-                agg_df = defect_df.merge(bad_package_df, on='sku_number')
+                agg_df = defect_df.merge(bad_package_df, on='sku_number', how='outer')
                 agg_df.rename(columns={'sku_number': 'Артикул',
                                        '0_x': 'Проблемы с товаром',
                                        '0_y': 'Проблемы со сборкой'},
                               inplace=True)
                 agg_df = agg_df.set_index(['Артикул'])
+                agg_df = agg_df.fillna(0)
                 with col2:
                     st.dataframe(agg_df, use_container_width=True, hide_index=False)
 
@@ -450,11 +456,6 @@ def render_tables_tab():
                     st.dataframe(result_df, use_container_width=True)
                     st.session_state['result_df'] = None
 
-        if st.session_state['period_selector'] == 'По месяцам':
-            st.session_state['result_df'] = None
-
-        if st.session_state['period_selector'] == 'По дням':
-            st.session_state['result_df'] = None
 
     with col2:
         if st.session_state['result_df'] is not None:

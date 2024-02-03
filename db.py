@@ -20,6 +20,19 @@ def init_tables(db):
 
         db.commit()
 
+def init_bitrix_buffer(db):
+    with sqlite3.connect(db) as db:
+        query = """
+        CREATE TABLE IF NOT EXISTS bitrix_buffer(
+        order_id INTEGER,
+        order_number_1c TEXT,
+        status TEXT)
+        """
+
+        db.execute(query)
+
+        db.commit()
+
 
 def init_lexicon_table(db):
     with sqlite3.connect(db) as db:
@@ -124,6 +137,16 @@ def add_lexicon(db, key, value):
     db.execute(query)
     db.commit()
 
+def add_bitrix_to_sql(db, order_id, order_number, status):
+    with sqlite3.connect(db) as db:
+        query = f"""
+        INSERT INTO bitrix_buffer
+        VALUES
+        ('{order_id}', '{order_number}', '{status}')
+        """
+
+    db.execute(query)
+    db.commit()
 
 def read_lexicon(db=db):
     with sqlite3.connect(db) as db:
@@ -132,4 +155,3 @@ def read_lexicon(db=db):
         """
         df = pd.read_sql_query(query, db)
         return df
-

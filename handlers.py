@@ -13,7 +13,7 @@ import lexicon
 from bot_functions import create_inline_kb
 from dashboard_functions import render_users, add_pending_user
 
-users_df_columns = ['username', 'user_id', 'role']
+users_df_columns = ['username', 'user_id', 'role', 'location']
 
 from lexicon import lexicon_dict
 
@@ -46,7 +46,7 @@ class FSMFillForm(StatesGroup):
                 lambda message: message.from_user.id in render_users(DB, 'users',
                                                                      users_df_columns,
                                                                      list_mode=True,
-                                                                     users='authed'))
+                                                                     users='office'))
 async def process_start_command(message: Message, state: FSMContext):
     register_button = InlineKeyboardButton(
         text='Зарегистрировать проблему',
@@ -198,7 +198,13 @@ async def process_unauthed_register_state(callback: CallbackQuery, state: FSMCon
     await state.clear()
 
 
-@router.message(Command(commands='cancel'), StateFilter(default_state))
+@router.message(Command(commands='cancel'),
+                StateFilter(default_state),
+                lambda message: message.from_user.id in render_users(DB, 'users',
+                                                                     users_df_columns,
+                                                                     list_mode=True,
+                                                                     users='office')
+                )
 async def process_cancel_command(message: Message):
     await message.answer(
         text='Отменять нечего.\n\n'
@@ -207,7 +213,13 @@ async def process_cancel_command(message: Message):
     )
 
 
-@router.message(Command(commands='cancel'), ~StateFilter(default_state))
+@router.message(Command(commands='cancel'),
+                ~StateFilter(default_state),
+                lambda message: message.from_user.id in render_users(DB, 'users',
+                                                                     users_df_columns,
+                                                                     list_mode=True,
+                                                                     users='office')
+                )
 async def process_cancel_command_state(message: Message, state: FSMContext):
     await message.answer(
         text='Вы отменили регистрацию.\n\n'

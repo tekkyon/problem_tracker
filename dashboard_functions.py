@@ -30,15 +30,22 @@ def render_users(db, table, columns_list, list_mode=True, users='all'):
                 return list(df['user_id'])
             elif users == 'authed':
                 return list(df.query('role != "pending"')['user_id'])
+            elif users == 'office':
+                return list(df.query('role != "pending" & location == "Офис"')['user_id'])
             elif users == 'pending':
                 return list(df.query('role == "pending"')['user_id'])
+            elif users == 'warehouse':
+                return list(df.query('role != "pending" & location == "Склад"')['user_id'])
+
         else:
             if users == 'all':
                 return df['user_id']
-            elif users == 'authed':
-                return df.query('role != "pending"')
+            elif users == 'office':
+                return df.query('role != "pending" & location == "Офис"')['user_id']
             elif users == 'pending':
                 return df.query('role == "pending"')
+            elif users == 'warehouse':
+                return df.query('role != "pending" & location == "Склад"')['user_id']
 
         return df
 
