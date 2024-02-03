@@ -1,16 +1,12 @@
 import asyncio
 import logging
-import subprocess
 
-from aiogram import Bot, Dispatcher, F
-from aiogram.fsm.state import State, StatesGroup
+from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
 import handlers
 import bitrix_handlers
 from config import load_config, Config
-
-DB = 'greenea_issues.db'
 
 logger = logging.getLogger(__name__)
 
