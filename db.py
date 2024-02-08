@@ -128,24 +128,24 @@ def get_name_by_id(db, tel_id):
     return df
 
 
-def add_lexicon(db, key, value):
-    with sqlite3.connect(db) as db:
-        query = f"""
-        INSERT INTO lexicon
-        VALUES
-        ('{key}', '{value}')
-        """
+# def add_lexicon(db, key, value):
+#     with sqlite3.connect(db) as db:
+#         query = f"""
+#         INSERT INTO lexicon
+#         VALUES
+#         ('{key}', '{value}')
+#         """
+#
+#     db.execute(query)
+#     db.commit()
 
-    db.execute(query)
-    db.commit()
 
-
-def add_bitrix_to_sql(order_id, order_number, status):
+def add_bitrix_to_sql(order_id, order_number, status, dims):
     with sqlite3.connect('greenea_issues.db') as db:
         query = f"""
         INSERT INTO bitrix_buffer
         VALUES
-        ('{order_id}', '{order_number}', '{status}')
+        ('{order_id}', '{order_number}', '{status}', '{dims}')
         """
 
     db.execute(query)

@@ -40,7 +40,10 @@ def render_dim():
     with bitcol1:
         order_dataframe['link'] = order_dataframe['order_id'].apply(lambda x: f'https://greenea.bitrix24.ru/crm/deal'
                                                                               f'/details/{x}/')
-        temp = order_dataframe[['link', 'order_number_1c', 'status']]
+        temp = order_dataframe[['link', 'order_number_1c', 'status', 'dims']]
+        temp['Введены габариты'] = temp['dims'].apply(lambda x: True if len(x) > 0 else False)
+        temp = temp[['link', 'order_number_1c', 'status', 'Введены габариты']]
+
         st.dataframe(temp,
                      use_container_width=True,
                      hide_index=True,
@@ -58,9 +61,12 @@ def render_dim():
         dimensions = leads['UF_CRM_1704976176405']
 
         if dimensions:
-            st.write(f'Введены габариты: {dimensions}')
+            st.subheader('Габариты')
+            dimensions = dimensions.split(';')
+            for string in dimensions:
+                st.write(f'{string}')
         else:
-            st.write('Габариты еще не введены')
+            st.write('Габариты еще не введены.')
 
         if 'qny_of_box' not in st.session_state:
             st.session_state['qny_of_box'] = 0

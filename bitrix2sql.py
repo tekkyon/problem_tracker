@@ -20,7 +20,8 @@ def refresh_db(db=db):
         order_number = key
         order_id = value['ID Заказа']
         status = value['Статус заказа']
-        add_bitrix_to_sql(order_id, order_number, status)
+        dims = value['Габариты']
+        add_bitrix_to_sql(order_id, order_number, status, dims)
     return True
 
 

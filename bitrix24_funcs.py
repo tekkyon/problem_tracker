@@ -35,6 +35,7 @@ def init_1c_orders() -> dict:
         if 'UF_CRM_1705051837784' in temp and len(temp['UF_CRM_1705051837784']) > 0:
             result[temp['UF_CRM_1705051837784']] = {'ID Заказа': temp["ID"],
                                                     'Статус заказа': stages_dict[temp["STAGE_ID"]],
+                                                    'Габариты': temp['UF_CRM_1704976176405']
                                                     }
     return result
 
