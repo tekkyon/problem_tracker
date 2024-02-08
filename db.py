@@ -4,6 +4,7 @@ from datetime import date
 
 from config import db
 
+
 def init_tables(db):
     with sqlite3.connect(db) as db:
         query = """
@@ -20,11 +21,12 @@ def init_tables(db):
 
         db.commit()
 
+
 def init_bitrix_buffer(db):
     with sqlite3.connect(db) as db:
         query = """
         CREATE TABLE IF NOT EXISTS bitrix_buffer(
-        order_id INTEGER,
+        order_id INTEGER UNIQUE,
         order_number_1c TEXT,
         status TEXT)
         """
@@ -137,8 +139,9 @@ def add_lexicon(db, key, value):
     db.execute(query)
     db.commit()
 
-def add_bitrix_to_sql(db, order_id, order_number, status):
-    with sqlite3.connect(db) as db:
+
+def add_bitrix_to_sql(order_id, order_number, status):
+    with sqlite3.connect('greenea_issues.db') as db:
         query = f"""
         INSERT INTO bitrix_buffer
         VALUES
@@ -148,6 +151,7 @@ def add_bitrix_to_sql(db, order_id, order_number, status):
     db.execute(query)
     db.commit()
 
+
 def read_lexicon(db=db):
     with sqlite3.connect(db) as db:
         query = f"""
@@ -155,3 +159,25 @@ def read_lexicon(db=db):
         """
         df = pd.read_sql_query(query, db)
         return df
+
+
+def update_lexicon(old_value, new_value, color, db=db):
+    with sqlite3.connect(db) as db:
+        query = f"""
+        UPDATE lexicon
+        SET value='{new_value}', color='{color}'
+        WHERE value='{old_value}'
+        """
+
+    db.execute(query)
+    db.commit()
+
+
+def add_lexicon(new_value, color, db=db, pos=6, purpose='marketplace'):
+    with sqlite3.connect(db) as db:
+        query = f"""
+        INSERT INTO lexicon
+        VALUES ('btn_6', '{new_value}', '{purpose}', '{color}');
+        """
+    db.execute(query)
+    db.commit()

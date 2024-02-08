@@ -51,7 +51,6 @@ async def process_start_register_dims(message: Message, state: FSMContext):
     )
 
     keyboard: list[list[InlineKeyboardButton]] = [
-        [register_dims_button],
         [feedback_button]
     ]
 

@@ -7,14 +7,21 @@ from bitrix24_funcs import init_1c_orders
 from config import db
 from db import add_bitrix_to_sql
 
-def refresh_db():
+def refresh_db(db=db):
     orders = init_1c_orders()
+
+    with sqlite3.connect(db) as db:
+        query = """
+        DELETE FROM bitrix_buffer"""
+    db.execute(query)
+    db.commit()
 
     for key, value in orders.items():
         order_number = key
         order_id = value['ID Заказа']
         status = value['Статус заказа']
-        add_bitrix_to_sql(db, order_id, order_number, status)
+        add_bitrix_to_sql(order_id, order_number, status)
+    return True
 
 
 def create_orders_kb(width: int,

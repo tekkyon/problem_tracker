@@ -2,12 +2,14 @@ import streamlit as st
 
 from dashboard_functions import simple_render_user, change_role, change_loc
 from config import load_config, Config
-from db import read_lexicon
+from db import read_lexicon, update_lexicon
 
 db = 'greenea_issues.db'
 
 
 def render_settings():
+    st.session_state['admin_mode'] = st.checkbox('Режим отладки')
+
     st.subheader('Настройки доступа')
     config: Config = load_config()
     st.text_input(label='Токен телеграм бота',
@@ -55,8 +57,40 @@ def render_settings():
                     change_loc(user_id=user_id, location=location)
 
     st.subheader('Настройки маркетплейсов и тегов')
-    st.caption('Здесь можно будет добавить иные названия маркетов и дополнительные теги для них')
-    st.dataframe(read_lexicon().query('purpose == "marketplace"')['value'])
+    marketplace_editor_list = list(read_lexicon().query('purpose == "marketplace"')['value'])
+
+    marketplace_editor_list.insert(0, 'Добавить новый маркетплейс')
+
+    marketplace_editor_selector = st.selectbox('Выбор маркетплейса для редактирования:',
+                                               options=marketplace_editor_list,
+                                               label_visibility='collapsed')
+    mp_edit_t1, mp_edit_t2 = st.columns([5, 1])
+
+    with mp_edit_t1:
+        if marketplace_editor_selector != 'Добавить новый маркетплейс':
+            new_name_for_marketplace = st.text_input('Новое название',
+                                                     value=marketplace_editor_selector)
+        else:
+            new_name_for_marketplace = st.text_input('Название маркетплейса')
+
+    with mp_edit_t2:
+        if marketplace_editor_selector != 'Добавить новый маркетплейс':
+            color = read_lexicon().query('value == @marketplace_editor_selector')['color'].iloc[0]
+            marketplace_color_picker = st.color_picker('Выбор цвета',
+                                                       value=color)
+        else:
+            marketplace_color_picker = st.color_picker('Выбор цвета',
+                                                       value='#FFFFFF')
+
+
+    save_name = st.button('Сохранить',
+                          use_container_width=True)
+    if save_name:
+        if marketplace_editor_selector != 'Добавить новый маркетплейс':
+            update_lexicon(marketplace_editor_selector, new_name_for_marketplace, marketplace_color_picker)
+        else:
+            pass
+        st.success('Успешно')
 
     st.subheader('Работа с базой данных')
     st.caption('Тут будет раздел с бэкапом базы')
@@ -67,6 +101,3 @@ def render_settings():
             file_name="greenea_issues.db",
             mime="application/octet-stream"
         )
-
-    st.subheader('Настройки профиля')
-    st.caption('Здесь будут настройки профиля')

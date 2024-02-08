@@ -1,5 +1,6 @@
 import streamlit as st
 
+from dim_input import render_dim
 from graphics_tab import render_graphics_tab
 from session_state_func import create_session_state
 from settings_tab import render_settings
@@ -25,10 +26,13 @@ if st.session_state['password'] is None:
                 if password == 'passwordtest123':
                     st.session_state['password'] = True
                     st.rerun()
+                elif password == 'габариты':
+                    st.session_state['password'] = 'dims'
+                    st.rerun()
                 else:
                     st.error('Ошибка')
 
-if st.session_state['password']:
+if st.session_state['password'] == True:
     tab1, tab2, tab3 = st.tabs(["Таблицы", "Графики и диаграммы", "Настройки"])
     with tab1:
         render_tables_tab()
@@ -36,6 +40,10 @@ if st.session_state['password']:
         render_graphics_tab()
     with tab3:
         render_settings()
+
+if st.session_state['password'] == 'dims':
+    st.session_state['admin_mode'] = True
+    render_dim()
 
 
 hide_streamlit_style = """
@@ -69,4 +77,8 @@ hide_streamlit_style = """
                 }
                 </style>
                 """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+if st.session_state['admin_mode'] is False:
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+else:
+    pass

@@ -54,3 +54,9 @@ def update_dimensions(id: int, dim: str):
 
 
 # update_dimensions(10500, 'тест')
+
+# def get_deal_by_number(id: int):
+#     result = b.callMethod('crm.deal.list', params={'filter': {'UF_CRM_1705051837784': "8098"}})
+#     return result
+#
+# print(get_deal_by_number(8098))

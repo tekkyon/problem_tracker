@@ -108,3 +108,5 @@ def create_session_state():
     if 'result_table' not in st.session_state:
         st.session_state['result_table'] = None
 
+    if 'admin_mode' not in st.session_state:
+        st.session_state['admin_mode'] = False
