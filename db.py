@@ -151,6 +151,16 @@ def add_bitrix_to_sql(order_id, order_number, status, dims):
     db.execute(query)
     db.commit()
 
+def update_sql_dim(order_id, dims):
+    with sqlite3.connect('greenea_issues.db') as db:
+        query = f"""
+        UPDATE bitrix_buffer
+        SET dims='{dims}'
+        WHERE order_id='{order_id}'
+        """
+
+    db.execute(query)
+    db.commit()
 
 def read_lexicon(db=db):
     with sqlite3.connect(db) as db:

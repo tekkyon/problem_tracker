@@ -6,7 +6,7 @@ from session_state_func import create_session_state
 from settings_tab import render_settings
 from tables_tab import render_tables_tab
 
-st.set_page_config(page_title='Problem Tracker Dashboard',
+st.set_page_config(page_title='Dashboard',
                    layout='wide',
                    initial_sidebar_state='collapsed')
 
