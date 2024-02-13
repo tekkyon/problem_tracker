@@ -2,7 +2,7 @@ import streamlit as st
 
 from dashboard_functions import simple_render_user, change_role, change_loc
 from config import load_config, Config
-from db import read_lexicon, update_lexicon
+from db import read_lexicon, update_lexicon, add_new_worker
 
 db = 'greenea_issues.db'
 
@@ -101,3 +101,28 @@ def render_settings():
             file_name="greenea_issues.db",
             mime="application/octet-stream"
         )
+
+
+def render_dim_settings():
+    dim_settings_col1, dim_settings_col2 = st.columns([2, 3])
+
+    if 'workers_table' not in st.session_state:
+        st.session_state['workers_table'] = None
+
+    with dim_settings_col1:
+        with st.form('Редактор сотрудников'):
+            firstname = st.text_input('Имя')
+            lastname = st.text_input('Фамилия')
+            position = st.selectbox('Должность',
+                                    options=['Сборщик'])
+
+            worker_save_button = st.form_submit_button('Сохранить', disabled=True)
+
+            if worker_save_button:
+                add_new_worker(3, firstname, lastname, position)
+
+    with dim_settings_col2:
+
+
+        if st.session_state['workers_table'] is not None:
+            st.dataframe(st.session_state['workers_table'])

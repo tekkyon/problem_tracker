@@ -4,17 +4,11 @@ import pandas as pd
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from bitrix24_funcs import init_1c_orders
-from config import db
+from config import db, task_db
 from db import add_bitrix_to_sql
 
-def refresh_db(db=db):
+def refresh_db(db=task_db):
     orders = init_1c_orders()
-
-    with sqlite3.connect(db) as db:
-        query = """
-        DELETE FROM bitrix_buffer"""
-    db.execute(query)
-    db.commit()
 
     for key, value in orders.items():
         order_number = key

@@ -3,7 +3,7 @@ import streamlit as st
 from dim_input import render_dim
 from graphics_tab import render_graphics_tab
 from session_state_func import create_session_state
-from settings_tab import render_settings
+from settings_tab import render_settings, render_dim_settings
 from tables_tab import render_tables_tab
 
 st.set_page_config(page_title='Dashboard',
@@ -43,7 +43,11 @@ if st.session_state['password'] == True:
 
 if st.session_state['password'] == 'dims':
     st.session_state['admin_mode'] = True
-    render_dim()
+    tab1, tab2 = st.tabs(['Габаритница', 'Настройки'])
+    with tab1:
+        render_dim()
+    with tab2:
+        render_dim_settings()
 
 
 hide_streamlit_style = """

@@ -51,7 +51,11 @@ def init_1c_orders() -> dict:
 
 
 def update_dimensions(id: int, dim: str):
-    b.callMethod('crm.deal.update', ID=id, fields={'UF_CRM_1704976176405': dim})
+    try:
+        b.callMethod('crm.deal.update', ID=id, fields={'UF_CRM_1704976176405': dim,
+                                                       'STAGE_ID': 'EXECUTING'})
+    except Exception as e:
+        print(e)
 
 
 # update_dimensions(10500, 'тест')

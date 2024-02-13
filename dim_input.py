@@ -1,5 +1,7 @@
 import sqlite3
 
+import time
+
 import pandas as pd
 import streamlit as st
 
@@ -8,10 +10,17 @@ from bitrix2sql import refresh_db
 
 from collections import Counter
 
-from db import update_sql_dim
+from config import task_db
+from db import update_sql_dim, get_list_of_workers
 
 if 'result_buffer_df' not in st.session_state:
     st.session_state['result_buffer_df'] = None
+
+if 'old_number' not in st.session_state:
+    st.session_state['old_number'] = None
+
+if 'new_number' not in st.session_state:
+    st.session_state['new_number'] = None
 
 
 def render_dim():
@@ -46,8 +55,9 @@ def render_dim():
         )
     }
 
-    with sqlite3.connect('greenea_issues.db') as db:
-        order_dataframe = pd.read_sql('SELECT * from bitrix_buffer', db)
+    with sqlite3.connect(task_db) as db:
+        order_dataframe = pd.read_sql('SELECT * from orders', db)
+        st.session_state['old_number'] = order_dataframe.shape[0]
     with bitcol1:
         order_dataframe['link'] = order_dataframe['order_id'].apply(
             lambda order: f'https://greenea.bitrix24.ru/crm/deal'
@@ -270,6 +280,20 @@ def render_dim():
                 z = st.session_state[f'dims_z_{i}']
                 temp_volume += x * y * z * int(st.session_state[f'qny_{i}'])
 
+
+        temp_worker_df = get_list_of_workers()
+        temp_worker_df['ИмяФамилия'] = temp_worker_df['lastname'] + ' ' + temp_worker_df['firstname']
+        temp_worker_df = temp_worker_df[['ИмяФамилия', 'worker_id']]
+        temp_worker_df = temp_worker_df.set_index('ИмяФамилия')
+        temp_worker_dict = temp_worker_df.to_dict()
+
+        temp_worker_dict = temp_worker_dict['worker_id']
+        executor_selector = st.selectbox('Сборщик',
+                                         options=list(temp_worker_dict.keys()))
+
+        executor_id = temp_worker_dict[executor_selector]
+
+
         st.subheader(f'Общее количество: {temp_qny}')
         st.write(f'Общий вес: {temp_weight} кг.')
         st.write(f'Общий объем: {temp_volume / 1000000} м³.')
@@ -299,7 +323,8 @@ def render_dim():
                 temp_weight = f'{temp_weight} кг.'
                 result = f'{result} общий объем: {temp_volume}; общий вес: {temp_weight}'
 
-            update_sql_dim(order_id, result)
+            update_sql_dim(order_id, result, executor_id)
             update_dimensions(int(order_id), result)
-            st.rerun()
             st.toast('Габариты обновлены')
+            time.sleep(1)
+            st.rerun()
