@@ -298,7 +298,8 @@ def render_dim():
         st.write(f'Общий вес: {temp_weight} кг.')
         st.write(f'Общий объем: {temp_volume / 1000000} м³.')
 
-        volume_weight_checkbox = st.checkbox('Добавить информацию об общем весе и объеме')
+        volume_weight_checkbox = st.checkbox('Добавить информацию об общем весе и объеме',
+                                             disabled=True)
 
         update_dims = st.button('Обновить информацию о габаритах',
                                 use_container_width=True,
