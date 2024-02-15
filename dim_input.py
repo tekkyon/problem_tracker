@@ -11,7 +11,7 @@ from bitrix2sql import refresh_db
 from collections import Counter
 
 from config import task_db
-from db import update_sql_dim, get_list_of_workers
+from db import update_sql_dim, get_list_of_workers, update_status
 
 if 'result_buffer_df' not in st.session_state:
     st.session_state['result_buffer_df'] = None
@@ -25,14 +25,17 @@ if 'new_number' not in st.session_state:
 
 def render_dim():
     bitcol1, bitcol2 = st.columns([2, 3])
-
-    with bitcol1:
-        with st.form('refresh_form'):
-            refresh_button = st.form_submit_button('Обновить буфер заказов', use_container_width=True)
-
-            if refresh_button:
-                refresh_db()
-                st.toast('Список заказов обновлен')
+    update_list = refresh_db()
+    update_status(update_list)
+    #             update_status(update_list)
+    # with bitcol1:
+    #     with st.form('refresh_form'):
+    #         refresh_button = st.form_submit_button('Обновить буфер заказов', use_container_width=True)
+    #
+    #         if refresh_button:
+    #             update_list = refresh_db()
+    #             update_status(update_list)
+    #             st.toast('Список заказов обновлен')
 
     column_cfg = {
         'order_id': st.column_config.TextColumn(
@@ -63,13 +66,14 @@ def render_dim():
             lambda order: f'https://greenea.bitrix24.ru/crm/deal'
                           f'/details/{order}/')
         temp = order_dataframe[['link', 'order_number_1c', 'status', 'dims']]
-        temp['Введены габариты'] = temp['dims'].apply(lambda x: True if len(x) > 0 else False)
+        temp['Введены габариты'] = temp['dims'].apply(lambda x: False if x=='None' else True)
         st.session_state['result_buffer_df'] = temp[['link', 'order_number_1c', 'status', 'Введены габариты']]
 
         st.dataframe(st.session_state['result_buffer_df'],
                      use_container_width=True,
                      hide_index=True,
-                     column_config=column_cfg)
+                     column_config=column_cfg,
+                     height=555)
         order_options = list(order_dataframe['order_number_1c'])
         order_options.sort()
     with bitcol2:
@@ -92,7 +96,8 @@ def render_dim():
 
         order_selector = st.selectbox('Выбор заказа',
                                       options=order_options,
-                                      on_change=refresh_dims)
+                                      on_change=refresh_dims,
+                                      placeholder='Выберите заказ')
 
         order_id = order_dataframe.loc[order_dataframe['order_number_1c'] == order_selector]['order_id']
         order_id = str(order_id.iloc[0])

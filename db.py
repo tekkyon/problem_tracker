@@ -1,8 +1,10 @@
+import asyncio
 import sqlite3
 import pandas as pd
 from datetime import date, datetime
 
 from config import db, task_db
+from fastbitrix_funcs import get_current_status
 
 
 def init_tables(db):
@@ -173,7 +175,8 @@ def add_bitrix_to_sql(order_id, order_number, status, dims, executor='default', 
         db.execute(query)
         db.commit()
     else:
-        pass
+        return [order_id, status]
+
 
 
 def update_sql_dim(order_id, dims, executor, task_db=task_db):
@@ -237,3 +240,14 @@ def get_list_of_workers(db=task_db):
         """
     df = pd.read_sql_query(query, db)
     return df
+
+def update_status(new_status_dict: dict) -> None:
+    for key, value in new_status_dict.items():
+        with sqlite3.connect('task.db') as db:
+            query = f"""
+            UPDATE orders
+            SET status='{value}'
+            WHERE order_id='{key}'
+            """
+        db.execute(query)
+        db.commit()

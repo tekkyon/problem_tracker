@@ -1,22 +1,30 @@
+import asyncio
 import sqlite3
 
 import pandas as pd
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from bitrix24_funcs import init_1c_orders
 from config import db, task_db
 from db import add_bitrix_to_sql
+from fastbitrix_funcs import get_deals
+
 
 def refresh_db(db=task_db):
-    orders = init_1c_orders()
+    update_dict = {}
+    orders = asyncio.run(get_deals())
 
     for key, value in orders.items():
         order_number = key
         order_id = value['ID Заказа']
         status = value['Статус заказа']
         dims = value['Габариты']
-        add_bitrix_to_sql(order_id, order_number, status, dims)
-    return True
+        present_id = add_bitrix_to_sql(order_id, order_number, status, dims)
+        if present_id:
+            update_dict[present_id[0]] = present_id[1]
+
+    return update_dict
+
+
 
 
 def create_orders_kb(width: int,

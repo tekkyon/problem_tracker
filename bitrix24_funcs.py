@@ -23,6 +23,7 @@ def get_deals_id():
                                                               'EXECUTING']})
 
 
+
 def init_1c_orders() -> dict:
     deal_ids = []
     deals = get_deals_id()
