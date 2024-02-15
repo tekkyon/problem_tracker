@@ -42,7 +42,7 @@ if st.session_state['password'] == True:
         render_settings()
 
 if st.session_state['password'] == 'dims':
-    st.session_state['admin_mode'] = True
+    # st.session_state['admin_mode'] = True
     tab1, tab2 = st.tabs(['Габаритница', 'Настройки'])
     with tab1:
         render_dim()
