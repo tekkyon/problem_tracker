@@ -10,7 +10,8 @@ stages_dict = {
     'UC_6T7LQR': 'Счет оплачен',
     'PREPARATION': 'Заказ поставщику',
     'EXECUTING': 'Готов к отгрузке(собран)',
-    'UC_4D17ON': 'Оформлена накладная ТК'
+    'UC_4D17ON': 'Оформлена накладная ТК',
+    '3': 'Рекламация'
 }
 
 webhook = 'https://greenea.bitrix24.ru/rest/10798/6yb2e79n0wrdyiwe'
@@ -36,7 +37,8 @@ async def get_deals() -> dict:
                                     'filter': {'STAGE_ID': ['PREPAYMENT_INVOICE',
                                                             'UC_6T7LQR',
                                                             'PREPARATION',
-                                                            'EXECUTING']}
+                                                            'EXECUTING',
+                                                            '3']}
                                 })
 
     for deal in deals:
@@ -47,19 +49,17 @@ async def get_deals() -> dict:
 
     return result
 
-async def get_current_status(id: int) -> str:
+
+async def get_current_status(id):
     connector = aiohttp.TCPConnector(ssl=False)
     async with aiohttp.ClientSession(connector=connector) as client:
         b = BitrixAsync(webhook, client=client, verbose=True)
-        status_dict = {}
-        # deals = await b.get_all('crm.deal.list',
-        #                         params={
-        #                             'select': ['STAGE_ID'],
-        #                             'filter': {'ID': id}
-        #                         })
-
-        # return stages_dict[deals[0]['STAGE_ID']]
-
+        result = await b.get_all('crm.deal.list',
+                                params={
+                                    'select': ['STAGE_ID'],
+                                    'filter': {'ID': id}
+                                })
+        return result
 
 
 async def async_update_dimensions(id: int, dim: str):
@@ -89,5 +89,5 @@ def update_dimensions(id: int, dim: str):
 # deals_id = asyncio.run(get_deals())
 # print(deals_id)
 
-status_id = asyncio.run(get_current_status(10882))
-print(status_id)
+# status_id = asyncio.run(get_current_status(10882))
+# print(status_id)
