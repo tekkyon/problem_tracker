@@ -83,7 +83,7 @@ def render_dim():
                      hide_index=True,
                      column_config=column_cfg,
                      height=555)
-        order_options = list(order_dataframe['order_number_1c'])
+        order_options = list(order_dataframe.query('status==@status_list')['order_number_1c'])
         order_options.sort()
     with bitcol2:
         if 'qny_of_place' not in st.session_state:
