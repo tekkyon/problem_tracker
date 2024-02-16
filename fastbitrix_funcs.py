@@ -11,7 +11,8 @@ stages_dict = {
     'PREPARATION': 'Заказ поставщику',
     'EXECUTING': 'Готов к отгрузке(собран)',
     'UC_4D17ON': 'Оформлена накладная ТК',
-    '3': 'Рекламация'
+    '3': 'Рекламация',
+    'FINAL_INVOICE': 'Отгружен'
 }
 
 webhook = 'https://greenea.bitrix24.ru/rest/10798/6yb2e79n0wrdyiwe'
@@ -38,7 +39,8 @@ async def get_deals() -> dict:
                                                             'UC_6T7LQR',
                                                             'PREPARATION',
                                                             'EXECUTING',
-                                                            '3']}
+                                                            '3',
+                                                            'FINAL_INVOICE']}
                                 })
 
     for deal in deals:
@@ -89,5 +91,5 @@ def update_dimensions(id: int, dim: str):
 # deals_id = asyncio.run(get_deals())
 # print(deals_id)
 
-# status_id = asyncio.run(get_current_status(10882))
+# status_id = asyncio.run(get_current_status(10356))
 # print(status_id)

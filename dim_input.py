@@ -66,8 +66,17 @@ def render_dim():
             lambda order: f'https://greenea.bitrix24.ru/crm/deal'
                           f'/details/{order}/')
         temp = order_dataframe[['link', 'order_number_1c', 'status', 'dims']]
-        temp['Введены габариты'] = temp['dims'].apply(lambda x: False if x=='None' else True)
-        st.session_state['result_buffer_df'] = temp[['link', 'order_number_1c', 'status', 'Введены габариты']]
+        temp['Введены габариты'] = temp['dims'].apply(lambda x: False if x == 'None' else True)
+        temp = temp[['link', 'order_number_1c', 'status', 'Введены габариты']]
+        status_list = [
+            'Выставлен счет',
+            'Счет оплачен',
+            'Заказ поставщику',
+            'Готов к отгрузке(собран)',
+            'Оформлена накладная ТК',
+            'Рекламация'
+        ]
+        st.session_state['result_buffer_df'] = temp.query('status==@status_list')
 
         st.dataframe(st.session_state['result_buffer_df'],
                      use_container_width=True,
@@ -285,7 +294,6 @@ def render_dim():
                 z = st.session_state[f'dims_z_{i}']
                 temp_volume += x * y * z * int(st.session_state[f'qny_{i}'])
 
-
         temp_worker_df = get_list_of_workers()
         temp_worker_df['ИмяФамилия'] = temp_worker_df['lastname'] + ' ' + temp_worker_df['firstname']
         temp_worker_df = temp_worker_df[['ИмяФамилия', 'worker_id']]
@@ -297,7 +305,6 @@ def render_dim():
                                          options=list(temp_worker_dict.keys()))
 
         executor_id = temp_worker_dict[executor_selector]
-
 
         st.subheader(f'Общее количество: {temp_qny}')
         st.write(f'Общий вес: {temp_weight} кг.')
