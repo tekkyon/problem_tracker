@@ -5,7 +5,6 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
 import handlers
-import bitrix_handlers
 from config import load_config, Config
 
 logger = logging.getLogger(__name__)
@@ -21,7 +20,6 @@ async def main() -> None:
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
     dp.include_router(handlers.router)
-    dp.include_router(bitrix_handlers.router)
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)

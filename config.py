@@ -31,3 +31,5 @@ def load_config(path: str | None = None) -> Config:
 db = 'greenea_issues.db'
 
 task_db = 'task.db'
+
+admin_list = ['tekkyon']

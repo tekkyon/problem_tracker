@@ -10,9 +10,16 @@ from config import db
 from lexicon import lexicon_dict
 
 
-def render_default_dataframe(db, main, columns_list):
+def render_default_dataframe(db, main, columns_list, b2b=False):
     with sqlite3.connect(db) as con:
-        sql_query = pd.read_sql(f'SELECT * FROM {main}', con, parse_dates=['date'])
+        if not b2b:
+            sql_query = pd.read_sql(f'SELECT * FROM {main} where marketplace != "b2b"',
+                                    con,
+                                    parse_dates=['date'])
+        elif b2b:
+            sql_query = pd.read_sql(f'SELECT * FROM {main} where marketplace == "b2b"',
+                                    con,
+                                    parse_dates=['date'])
 
         df = pd.DataFrame(sql_query, columns=columns_list)
 
@@ -182,3 +189,8 @@ def render_period_pivot(start='2023-04-01', end='2023-05-01', period='day'):
         period = period.fillna(0)
 
     return period
+
+
+
+
+

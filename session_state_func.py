@@ -3,8 +3,8 @@ import datetime
 
 
 def create_session_state():
-    if 'authed' not in st.session_state:
-        st.session_state['authed'] = None
+    if 'first_load' not in st.session_state:
+        st.session_state['first_load'] = True
 
     if 'stats_selector' not in st.session_state:
         st.session_state['stats_selector'] = None

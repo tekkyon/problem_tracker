@@ -22,7 +22,11 @@ lexicon_dict = {'bad_package': 'Проблема со сборкой',
                 'sber': 'Сбер',
                 'b2b': 'B2B',
                 'nan': 'Пусто',
-                'sku_number': 'Артикул'}
+                'sku_number': 'Артикул',
+                'fl': 'ФЛ-',
+                'ba': 'БА-',
+                'ko': 'КО-',
+                'digit': ''}
 
 numerical_month_dict = {1: 'Январь',
                         2: 'Февраль',

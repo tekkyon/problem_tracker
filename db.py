@@ -65,7 +65,8 @@ def init_users_tables(db):
         db.commit()
 
 
-def insert_db(db, sku, sku_number, marketplace, date_str, type_of_problem, comment, type_of_mp, manager_id):
+def insert_db(db, sku, sku_number, marketplace, date_str, type_of_problem, comment, type_of_mp,
+              manager_id, worker, bitrix_id=''):
     with sqlite3.connect(db) as db:
         date_str = date_str.split('/')
         today = date.today()
@@ -82,7 +83,9 @@ def insert_db(db, sku, sku_number, marketplace, date_str, type_of_problem, comme
              '{comment}',
               '{type_of_mp}',
               '{today}',
-              '{manager_id}')
+              '{manager_id}',
+              '{worker}',
+              '{bitrix_id}')
         """
 
         db.execute(query)
@@ -178,7 +181,6 @@ def add_bitrix_to_sql(order_id, order_number, status, dims, executor='default', 
         return [order_id, status]
 
 
-
 def update_sql_dim(order_id, dims, executor, task_db=task_db):
     now = datetime.now()
     with sqlite3.connect(task_db) as db:
@@ -223,7 +225,7 @@ def add_lexicon(new_value, color, db=db, pos=6, purpose='marketplace'):
     db.commit()
 
 
-def add_new_worker(worker_id: int, firstname: str, lastname: str, position:str, db=task_db):
+def add_new_worker(worker_id: int, firstname: str, lastname: str, position: str, db=task_db):
     with sqlite3.connect(db) as db:
         query = f"""
         INSERT INTO workers
@@ -231,6 +233,7 @@ def add_new_worker(worker_id: int, firstname: str, lastname: str, position:str, 
         """
     db.execute(query)
     db.commit()
+
 
 def get_list_of_workers(db=task_db):
     with sqlite3.connect(db) as db:
@@ -240,6 +243,7 @@ def get_list_of_workers(db=task_db):
         """
     df = pd.read_sql_query(query, db)
     return df
+
 
 def update_status(new_status_dict: dict) -> None:
     for key, value in new_status_dict.items():
@@ -251,3 +255,17 @@ def update_status(new_status_dict: dict) -> None:
             """
         db.execute(query)
         db.commit()
+
+
+def read_user(login: str, password: str):
+    with sqlite3.connect('users.db') as db:
+        try:
+            query = f"""
+            SELECT *
+            FROM users_credentials
+            WHERE login == '{login}'
+            """
+            df = pd.read_sql_query(query, 'users.db')
+            return df
+        except Exception as error:
+            return error

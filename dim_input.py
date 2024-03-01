@@ -25,17 +25,14 @@ if 'new_number' not in st.session_state:
 
 def render_dim():
     bitcol1, bitcol2 = st.columns([2, 3])
-    update_list = refresh_db()
-    update_status(update_list)
-    #             update_status(update_list)
-    # with bitcol1:
-    #     with st.form('refresh_form'):
-    #         refresh_button = st.form_submit_button('Обновить буфер заказов', use_container_width=True)
-    #
-    #         if refresh_button:
-    #             update_list = refresh_db()
-    #             update_status(update_list)
-    #             st.toast('Список заказов обновлен')
+    with bitcol1:
+        with st.form('refresh_form'):
+            refresh_button = st.form_submit_button('Обновить буфер заказов', use_container_width=True)
+
+            if refresh_button:
+                update_list = refresh_db()
+                update_status(update_list)
+                st.toast('Список заказов обновлен')
 
     column_cfg = {
         'order_id': st.column_config.TextColumn(
