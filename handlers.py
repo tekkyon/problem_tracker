@@ -112,7 +112,7 @@ async def process_dashboard(callback: CallbackQuery, state: FSMContext):
 
     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
     await callback.message.answer(
-        text='Какой-то текст',
+        text='Для получения доступа к дашборду пройдите процедуру регистрации.',
         reply_markup=markup
     )
     await state.set_state(FSMFillForm.dashboard_login)
