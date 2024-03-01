@@ -4,4 +4,4 @@ primaryColor="#4aa282"
 [client]
 showSidebarNavigation = false
 [ui]
-hideTopBar = true
+hideTopBar = false
