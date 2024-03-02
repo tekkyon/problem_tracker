@@ -597,6 +597,7 @@ def render_tables_tab():
                     result_df.set_index('Артикул', inplace=True)
 
                     st.dataframe(result_df, use_container_width=True)
+
                     st.session_state['result_df'] = None
 
     with col2:
