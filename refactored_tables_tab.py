@@ -10,6 +10,7 @@ from table_funcs import render_common_table, render_sku_groups_table
 first_date = datetime.date(2022, 12, 13)
 today = datetime.datetime.now()
 
+
 def render_tables_tab():
     col1, col2 = st.columns([1, 4])
 
@@ -127,11 +128,13 @@ def render_tables_tab():
                 label_visibility='collapsed'
             )
 
+            with col1:
+                st.session_state['delta_option'] = st.radio(label='type of delta',
+                                                            options=['ABS', '%'],
+                                                            label_visibility='collapsed',
+                                                            horizontal=True)
+
             if st.session_state['period_selector'] == 'За все время':
-                with col1:
-                    st.session_state['delta_option'] = st.radio(label='type of delta',
-                                                                options=['Абсолютная разница', 'Разница в процентах'],
-                                                                label_visibility='collapsed')
                 df = render_default_dataframe(db, 'main', lexicon.columns_list)
                 df.rename(columns={'type': 'type_of_problem'}, inplace=True)
                 df['month&year'] = df['date'].dt.to_period('M')
@@ -164,13 +167,13 @@ def render_tables_tab():
                         m_col1, m_col2, m_col3 = st.columns([2, 2, 2])
                         with m_col1:
                             if st.session_state['total_month_before'] is None:
-                                if st.session_state['delta_option'] == 'Абсолютная разница':
+                                if st.session_state['delta_option'] == 'ABS':
                                     delta = 0
                                 else:
                                     delta = '0%'
 
                             else:
-                                if st.session_state['delta_option'] == 'Абсолютная разница':
+                                if st.session_state['delta_option'] == 'ABS':
                                     delta = int(total_this_month - st.session_state['total_month_before'])
                                 else:
                                     try:
@@ -190,13 +193,13 @@ def render_tables_tab():
 
                         with m_col2:
                             if st.session_state['defect_month_before'] is None:
-                                if st.session_state['delta_option'] == 'Абсолютная разница':
+                                if st.session_state['delta_option'] == 'ABS':
                                     delta = 0
                                 else:
                                     delta = '0%'
 
                             else:
-                                if st.session_state['delta_option'] == 'Абсолютная разница':
+                                if st.session_state['delta_option'] == 'ABS':
                                     delta = int(defect_this_month - st.session_state['defect_month_before'])
                                 else:
                                     try:
@@ -215,13 +218,13 @@ def render_tables_tab():
 
                         with m_col3:
                             if st.session_state['package_month_before'] is None:
-                                if st.session_state['delta_option'] == 'Абсолютная разница':
+                                if st.session_state['delta_option'] == 'ABS':
                                     delta = 0
                                 else:
                                     delta = '0%'
 
                             else:
-                                if st.session_state['delta_option'] == 'Абсолютная разница':
+                                if st.session_state['delta_option'] == 'ABS':
                                     delta = int(package_this_month - st.session_state['package_month_before'])
                                 else:
                                     try:
@@ -252,28 +255,23 @@ def render_tables_tab():
                     st.session_state['table_year_selector'] = st.selectbox(label='filter year',
                                                                            options=list_of_years,
                                                                            label_visibility='collapsed',
-                                                                           index=len(list_of_years)-1)
+                                                                           index=len(list_of_years) - 1)
 
                     list_of_month = get_months(st.session_state['table_year_selector'],
                                                shift=False)
 
                     list_of_month = list(map(lambda x: lexicon.numerical_month_dict[x], list_of_month))
 
-
                     st.session_state['table_month_selector'] = st.selectbox(label='filter month',
                                                                             options=list_of_month,
                                                                             label_visibility='collapsed',
-                                                                            index=len(list_of_month)-1)
+                                                                            index=len(list_of_month) - 1)
                     st.session_state['table_month_selector'] = [i for i in lexicon.numerical_month_dict if
                                                                 lexicon.numerical_month_dict[i] == st.session_state[
                                                                     'table_month_selector']][0]
 
                     month = st.session_state['table_month_selector']
                     year = st.session_state['table_year_selector']
-
-                    st.session_state['delta_option'] = st.radio(label='type of delta',
-                                                                options=['Абсолютная разница', 'Разница в процентах'],
-                                                                label_visibility='collapsed')
 
                 if month < 10:
                     selected_date_string = f'{year}-0{month}'
@@ -314,13 +312,13 @@ def render_tables_tab():
                         package_this_month = month_df['Проблема со сборкой'].sum()
 
                         if st.session_state['total_month_before'] is None:
-                            if st.session_state['delta_option'] == 'Абсолютная разница':
+                            if st.session_state['delta_option'] == 'ABS':
                                 total_delta = 0
                             else:
                                 total_delta = '0%'
 
                         else:
-                            if st.session_state['delta_option'] == 'Абсолютная разница':
+                            if st.session_state['delta_option'] == 'ABS':
                                 total_delta = int(total_this_month - st.session_state['total_month_before'])
                             else:
                                 try:
@@ -333,13 +331,13 @@ def render_tables_tab():
                                     total_delta = '0%'
 
                         if st.session_state['defect_month_before'] is None:
-                            if st.session_state['delta_option'] == 'Абсолютная разница':
+                            if st.session_state['delta_option'] == 'ABS':
                                 defect_delta = 0
                             else:
                                 defect_delta = '0%'
 
                         else:
-                            if st.session_state['delta_option'] == 'Абсолютная разница':
+                            if st.session_state['delta_option'] == 'ABS':
                                 defect_delta = int(defect_this_month - st.session_state['defect_month_before'])
                             else:
                                 try:
@@ -351,13 +349,13 @@ def render_tables_tab():
                                     defect_delta = '0%'
 
                         if st.session_state['package_month_before'] is None:
-                            if st.session_state['delta_option'] == 'Абсолютная разница':
+                            if st.session_state['delta_option'] == 'ABS':
                                 package_delta = 0
                             else:
                                 package_delta = '0%'
 
                         else:
-                            if st.session_state['delta_option'] == 'Абсолютная разница':
+                            if st.session_state['delta_option'] == 'ABS':
                                 package_delta = int(package_this_month - st.session_state['package_month_before'])
                             else:
                                 try:
@@ -395,6 +393,154 @@ def render_tables_tab():
                             st.session_state['defect_month_before'] = None
                             st.session_state['package_month_before'] = None
                             break
+
+                st.session_state['defect_month_before'] = None
+
+                st.session_state['package_month_before'] = None
+
+                st.session_state['total_month_before'] = None
+
+            if st.session_state['period_selector'] == 'За год':
+                list_of_years = get_years()
+                st.session_state['table_year_selector'] = st.selectbox(label='filter year',
+                                                                       options=list_of_years,
+                                                                       label_visibility='collapsed',
+                                                                       index=len(list_of_years) - 1)
+
+                year_selected = st.session_state['table_year_selector']
+
+                list_of_month = get_months(year_selected,
+                                           shift=False)
+
+                df = render_default_dataframe(db, 'main', lexicon.columns_list)
+                list_of_markets = list(df['marketplace'].unique())
+                df.rename(columns={'type': 'type_of_problem'}, inplace=True)
+
+                df['year'] = df['date'].dt.year
+                df['month'] = df['date'].dt.month
+
+                df = df.query('year == @year_selected')
+
+                with col2:
+                    for month in list_of_month:
+                        st.subheader(lexicon.numerical_month_dict[month])
+                        month_df = df.query('month == @month')
+
+                        if year_selected == '2022':
+                            st.session_state['defect_month_before'] = None
+                            st.session_state['package_month_before'] = None
+                            st.session_state['total_month_before'] = None
+                        else:
+                            last_y_m_df = render_default_dataframe(db,
+                                                                   'main',
+                                                                   lexicon.columns_list)
+                            last_y_m_df['year'] = last_y_m_df['date'].dt.year
+                            last_y_m_df['month'] = last_y_m_df['date'].dt.month
+                            temp_y = year_selected - 1
+                            last_y_m_df = last_y_m_df.query('year == @temp_y & month == 12')
+                            last_y_m_df.rename(columns={'type': 'type_of_problem'}, inplace=True)
+                            st.session_state['defect_month_before'] = last_y_m_df.query('type_of_problem == "defect"').shape[0]
+                            st.session_state['package_month_before'] = last_y_m_df.query('type_of_problem == "bad_package"').shape[0]
+                            st.session_state['total_month_before'] = st.session_state['defect_month_before'] + st.session_state['package_month_before']
+
+                        market_month_df = pd.DataFrame(columns=['Маркетплейс',
+                                                                'Проблема с товаром',
+                                                                'Проблема со сборкой'])
+
+                        for market in list_of_markets:
+                            qny_defect = month_df.query(f'type_of_problem == "defect" & marketplace == "{market}"').shape[0]
+                            bad_package = \
+                                 month_df.query(f'type_of_problem == "bad_package" & marketplace == "{market}"').shape[0]
+                            data = {'Маркетплейс': lexicon.lexicon_dict[market],
+                                    'Проблема с товаром': qny_defect,
+                                    'Проблема со сборкой': bad_package}
+                            market_month_df.loc[len(market_month_df)] = data
+
+
+                        defect_this_month = market_month_df['Проблема с товаром'].sum()
+                        package_this_month = market_month_df['Проблема со сборкой'].sum()
+                        total_this_month = defect_this_month + package_this_month
+
+                        m_col1, m_col2, m_col3 = st.columns([2, 2, 2])
+
+                        with m_col1:
+                            if st.session_state['total_month_before'] is None:
+                                if st.session_state['delta_option'] == 'ABS':
+                                    delta = 0
+                                else:
+                                    delta = '0%'
+
+                            else:
+                                if st.session_state['delta_option'] == 'ABS':
+                                    delta = int(total_this_month - st.session_state['total_month_before'])
+                                else:
+                                    try:
+                                        delta = round(float(
+                                            (total_this_month - st.session_state['total_month_before']) /
+                                            st.session_state[
+                                                'total_month_before'] * 100), 2)
+                                        delta = f'{delta}%'
+                                    except:
+                                        delta = '0%'
+
+                            st.metric('Количество проблем за период',
+                                      total_this_month,
+                                      delta,
+                                      delta_color='inverse')
+
+                            st.session_state['total_month_before'] = total_this_month
+
+                        with m_col2:
+                            if st.session_state['defect_month_before'] is None:
+                                if st.session_state['delta_option'] == 'ABS':
+                                    delta = 0
+                                else:
+                                    delta = '0%'
+
+                            else:
+                                if st.session_state['delta_option'] == 'ABS':
+                                    delta = int(defect_this_month - st.session_state['defect_month_before'])
+                                else:
+                                    try:
+                                        delta = round(float(
+                                            (defect_this_month - st.session_state['defect_month_before']) /
+                                            st.session_state['defect_month_before'] * 100), 2)
+                                        delta = f'{delta}%'
+                                    except:
+                                        delta = '0%'
+
+                            st.metric('Проблемы с товаром',
+                                      defect_this_month,
+                                      delta,
+                                      delta_color='inverse')
+                            st.session_state['defect_month_before'] = defect_this_month
+
+                        with m_col3:
+                            if st.session_state['package_month_before'] is None:
+                                if st.session_state['delta_option'] == 'ABS':
+                                    delta = 0
+                                else:
+                                    delta = '0%'
+
+                            else:
+                                if st.session_state['delta_option'] == 'ABS':
+                                    delta = int(package_this_month - st.session_state['package_month_before'])
+                                else:
+                                    try:
+                                        delta = round(float(
+                                            (package_this_month - st.session_state['package_month_before']) /
+                                            st.session_state['package_month_before'] * 100), 2)
+                                        delta = f'{delta}%'
+                                    except:
+                                        delta = '0%'
+
+                            st.metric('Проблемы со сборкой',
+                                      package_this_month,
+                                      delta,
+                                      delta_color='inverse')
+                            st.session_state['package_month_before'] = package_this_month
+
+                        st.table(market_month_df.set_index('Маркетплейс'))
 
                 st.session_state['defect_month_before'] = None
 

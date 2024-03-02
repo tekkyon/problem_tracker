@@ -16,6 +16,7 @@ month_dict = {'January-': 'Январь',
 
 lexicon_dict = {'bad_package': 'Проблема со сборкой',
                 'defect': 'Проблема с товаром',
+                'delivery_issue': 'Проблема с доставкой',
                 'wb': 'Wildberries',
                 'ozon': 'Озон',
                 'ym': 'Яндекс.Маркет',
@@ -50,7 +51,8 @@ stat_options: list[str] = ['Общая таблица',
                            'По группам артикулов']
 
 filter_options: list[str] = ['За все время',
-                             'По месяцам']
+                             'По месяцам',
+                             'За год']
 
 columns_list: list[str] = ['sku_number',
                            'marketplace',
