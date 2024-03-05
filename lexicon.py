@@ -27,7 +27,8 @@ lexicon_dict = {'bad_package': 'Проблема со сборкой',
                 'fl': 'ФЛ-',
                 'ba': 'БА-',
                 'ko': 'КО-',
-                'digit': ''}
+                'digit': '',
+                '': ''}
 
 numerical_month_dict = {1: 'Январь',
                         2: 'Февраль',
