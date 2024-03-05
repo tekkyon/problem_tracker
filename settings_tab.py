@@ -116,6 +116,14 @@ def render_settings():
                 file_name="greenea_issues.db",
                 mime="application/octet-stream"
             )
+
+        with open("config.yaml", "rb") as fp:
+            btn2 = st.download_button(
+                label="Скачать данные о регистрациях",
+                data=fp,
+                file_name="config.yaml",
+                mime="application/octet-stream"
+            )
     st.subheader('Настройки профиля')
     authenticator.logout(button_name='Выйти')
 
