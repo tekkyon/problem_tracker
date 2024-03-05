@@ -6,6 +6,9 @@ def create_session_state():
     if 'first_load' not in st.session_state:
         st.session_state['first_load'] = True
 
+    if 'sku_table_selector' not in st.session_state:
+        st.session_state['sku_table_selector'] = None
+
     if 'stats_selector' not in st.session_state:
         st.session_state['stats_selector'] = None
 

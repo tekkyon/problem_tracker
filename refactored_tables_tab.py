@@ -439,23 +439,26 @@ def render_tables_tab():
                             temp_y = year_selected - 1
                             last_y_m_df = last_y_m_df.query('year == @temp_y & month == 12')
                             last_y_m_df.rename(columns={'type': 'type_of_problem'}, inplace=True)
-                            st.session_state['defect_month_before'] = last_y_m_df.query('type_of_problem == "defect"').shape[0]
-                            st.session_state['package_month_before'] = last_y_m_df.query('type_of_problem == "bad_package"').shape[0]
-                            st.session_state['total_month_before'] = st.session_state['defect_month_before'] + st.session_state['package_month_before']
+                            st.session_state['defect_month_before'] = \
+                                last_y_m_df.query('type_of_problem == "defect"').shape[0]
+                            st.session_state['package_month_before'] = \
+                                last_y_m_df.query('type_of_problem == "bad_package"').shape[0]
+                            st.session_state['total_month_before'] = st.session_state['defect_month_before'] + \
+                                                                     st.session_state['package_month_before']
 
                         market_month_df = pd.DataFrame(columns=['Маркетплейс',
                                                                 'Проблема с товаром',
                                                                 'Проблема со сборкой'])
 
                         for market in list_of_markets:
-                            qny_defect = month_df.query(f'type_of_problem == "defect" & marketplace == "{market}"').shape[0]
+                            qny_defect = \
+                                month_df.query(f'type_of_problem == "defect" & marketplace == "{market}"').shape[0]
                             bad_package = \
-                                 month_df.query(f'type_of_problem == "bad_package" & marketplace == "{market}"').shape[0]
+                                month_df.query(f'type_of_problem == "bad_package" & marketplace == "{market}"').shape[0]
                             data = {'Маркетплейс': lexicon.lexicon_dict[market],
                                     'Проблема с товаром': qny_defect,
                                     'Проблема со сборкой': bad_package}
                             market_month_df.loc[len(market_month_df)] = data
-
 
                         defect_this_month = market_month_df['Проблема с товаром'].sum()
                         package_this_month = market_month_df['Проблема со сборкой'].sum()
@@ -554,51 +557,83 @@ def render_tables_tab():
             df.rename(columns={'type': 'type_of_problem'}, inplace=True)
 
             with col1:
-                st.session_state['sku_radio_selector'] = st.radio('Отобразить:',
-                                                                  options=['По типу проблемы',
-                                                                           'По маркетплейсам'])
-            if st.session_state['sku_radio_selector'] == 'По типу проблемы':
-                defect_df = df.query('type_of_problem == "defect"').groupby(
-                    by=['sku_number']).size().reset_index()
+                st.session_state['sku_table_selector'] = st.selectbox('Сводная таблица',
+                                                                      options=[
+                                                                          'Сводная таблица',
+                                                                          'Детализация'
+                                                                      ],
+                                                                      label_visibility='collapsed')
 
-                bad_package_df = df.query('type_of_problem == "bad_package"').groupby(
-                    by=['sku_number']).size().reset_index()
+                if st.session_state['sku_table_selector'] == 'Сводная таблица':
 
-                agg_df = defect_df.merge(bad_package_df, on='sku_number', how='outer')
-                agg_df.rename(columns={'sku_number': 'Артикул',
-                                       '0_x': 'Проблемы с товаром',
-                                       '0_y': 'Проблемы со сборкой'},
-                              inplace=True)
-                agg_df = agg_df.set_index(['Артикул'])
-                agg_df = agg_df.fillna(0)
-                with col2:
-                    st.dataframe(agg_df, use_container_width=True, hide_index=False)
+                    st.session_state['sku_radio_selector'] = st.radio('Отобразить:',
+                                                                      options=['По типу проблемы',
+                                                                               'По маркетплейсам'])
+                    if st.session_state['sku_radio_selector'] == 'По типу проблемы':
+                        defect_df = df.query('type_of_problem == "defect"').groupby(
+                            by=['sku_number']).size().reset_index()
 
-                st.session_state['result_df'] = None
+                        bad_package_df = df.query('type_of_problem == "bad_package"').groupby(
+                            by=['sku_number']).size().reset_index()
 
-            if st.session_state['sku_radio_selector'] == 'По маркетплейсам':
-                with col2:
-                    list_of_markets = list(df['marketplace'].unique())
-                    result_df = pd.DataFrame()
-                    for market in list_of_markets:
-                        market_df = df.query(f'marketplace == "{market}"')
-                        market_df = market_df.groupby(by='sku_number').agg(
-                            market=('comment', 'count')).reset_index()
-                        market_df.rename(columns={'market': lexicon.lexicon_dict[market]}, inplace=True)
-                        market_df.set_index('sku_number', inplace=True)
+                        agg_df = defect_df.merge(bad_package_df, on='sku_number', how='outer')
+                        agg_df.rename(columns={'sku_number': 'Артикул',
+                                               '0_x': 'Проблемы с товаром',
+                                               '0_y': 'Проблемы со сборкой'},
+                                      inplace=True)
+                        agg_df = agg_df.set_index(['Артикул'])
+                        agg_df = agg_df.fillna(0)
+                        with col2:
+                            st.dataframe(agg_df, use_container_width=True, hide_index=False)
 
-                        if len(result_df) == 0:
-                            result_df = market_df
-                        else:
-                            result_df = pd.merge(result_df, market_df, how='outer', on='sku_number')
+                        st.session_state['result_df'] = None
 
-                    result_df = result_df.fillna(0)
-                    result_df = result_df.reset_index().rename(columns={'sku_number': 'Артикул'})
-                    result_df.set_index('Артикул', inplace=True)
+                    if st.session_state['sku_radio_selector'] == 'По маркетплейсам':
+                        with col2:
+                            list_of_markets = list(df['marketplace'].unique())
+                            result_df = pd.DataFrame()
+                            for market in list_of_markets:
+                                market_df = df.query(f'marketplace == "{market}"')
+                                market_df = market_df.groupby(by='sku_number').agg(
+                                    market=('comment', 'count')).reset_index()
+                                market_df.rename(columns={'market': lexicon.lexicon_dict[market]}, inplace=True)
+                                market_df.set_index('sku_number', inplace=True)
 
-                    st.dataframe(result_df, use_container_width=True)
+                                if len(result_df) == 0:
+                                    result_df = market_df
+                                else:
+                                    result_df = pd.merge(result_df, market_df, how='outer', on='sku_number')
 
-                    st.session_state['result_df'] = None
+                            result_df = result_df.fillna(0)
+                            result_df = result_df.reset_index().rename(columns={'sku_number': 'Артикул'})
+                            result_df.set_index('Артикул', inplace=True)
+
+                            st.dataframe(result_df, use_container_width=True)
+
+                            st.session_state['result_df'] = None
+
+                elif st.session_state['sku_table_selector'] == 'Детализация':
+                    with col1:
+
+                        sku_selector = st.selectbox('Выбор артикула',
+                                                    options=df['sku_number'].unique(),
+                                                    placeholder='Выберите артикул',
+                                                    label_visibility='collapsed')
+
+                        df = df.query('sku_number == @sku_selector')[['marketplace',
+                                                                      'date',
+                                                                      'type_of_problem',
+                                                                      'comment']]
+
+                        df['marketplace'] = df['marketplace'].apply(lambda x: lexicon.lexicon_dict[x])
+                        df['type_of_problem'] = df['type_of_problem'].apply(lambda x: lexicon.lexicon_dict[x])
+
+                        df = df.rename(columns={'marketplace': 'Маркетплейс',
+                                                'date': 'Дата',
+                                                'type_of_problem': 'Тип проблемы',
+                                                'comment': 'Комментарий'})
+
+                        st.session_state['result_df'] = df
 
     with col2:
         if st.session_state['result_df'] is not None:
