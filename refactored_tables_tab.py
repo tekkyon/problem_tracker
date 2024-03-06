@@ -390,6 +390,37 @@ def render_tables_tab():
                                           package_delta,
                                           delta_color='inverse')
                             st.table(month_df.set_index('Маркетплейс'))
+
+                            with st.expander('Проблемы с товаром'):
+                                drilldown = temp.query('type_of_problem == "defect"')
+
+                                drilldown['marketplace'] = drilldown['marketplace'].apply(lambda x: lexicon.lexicon_dict[x])
+
+                                drilldown = drilldown[['sku_number',
+                                                       'marketplace',
+                                                       'date',
+                                                       'comment']]
+
+                                drilldown = drilldown.rename(columns={
+                                    'marketplace': "Маркетплейс",
+                                    'comment': "Комментарий"
+                                })
+
+                                drilldown_cfg = {
+                                    'sku_number': st.column_config.TextColumn(
+                                        'Артикул'
+                                    ),
+                                    'date': st.column_config.DateColumn(
+                                        'Дата',
+                                        format="DD.MM.YYYY",
+                                    )
+                                }
+
+                                st.dataframe(drilldown,
+                                             use_container_width=True,
+                                             hide_index=True,
+                                             column_config=drilldown_cfg)
+
                             st.session_state['total_month_before'] = None
                             st.session_state['defect_month_before'] = None
                             st.session_state['package_month_before'] = None
