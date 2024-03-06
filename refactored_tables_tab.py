@@ -4,7 +4,8 @@ import pandas as pd
 
 import lexicon
 from config import db
-from dashboard_functions import render_default_dataframe, render_sku_table, get_months, color_marketplace, get_years
+from dashboard_functions import render_default_dataframe, render_sku_table, get_months, color_marketplace, get_years, \
+    get_quar
 from table_funcs import render_common_table, render_sku_groups_table
 
 first_date = datetime.date(2022, 12, 13)
@@ -554,6 +555,8 @@ def render_tables_tab():
         elif st.session_state['stats_selector'] == 'По артикулу':
             st.session_state['result_df'] = None
             df = render_default_dataframe(db, 'main', lexicon.columns_list)
+            df['year'] = df['date'].dt.year
+            df['month'] = df['date'].dt.month
             df.rename(columns={'type': 'type_of_problem'}, inplace=True)
 
             with col1:
@@ -617,8 +620,54 @@ def render_tables_tab():
 
                         sku_selector = st.selectbox('Выбор артикула',
                                                     options=df['sku_number'].unique(),
-                                                    placeholder='Выберите артикул',
-                                                    label_visibility='collapsed')
+                                                    placeholder='Выберите артикул')
+
+                        list_of_years = get_years()
+
+                        year_selector = st.selectbox('Выбор года',
+                                                     options=list_of_years,
+                                                     index=len(list_of_years)-1,
+                                                     placeholder='Год')
+
+                        list_of_month = get_months(year_selector,
+                                                   shift=False)
+
+                        period_selector = st.selectbox('Выбор периода:',
+                                                       options=['По месяцам',
+                                                                'По кварталам'],
+                                                       placeholder='Период',
+                                                       label_visibility='collapsed')
+                        if period_selector == 'По месяцам':
+
+                            month_selector = st.selectbox('Выбор месяца',
+                                                          options=list_of_month,
+                                                          placeholder='Месяц',
+                                                          label_visibility='collapsed')
+
+                            df = df.query('year == @year_selector')
+                            df = df.query('month == @month_selector')
+
+                        else:
+
+                            quar_list = get_quar(year_selector)
+
+                            quar_selector = st.selectbox('Выбор квартала',
+                                                         options=quar_list,
+                                                         placeholder='Квартал',
+                                                         label_visibility='collapsed')
+
+                            quar_month_list = [[1, 2, 3],
+                                               [4, 5, 6],
+                                               [7, 8, 9],
+                                               [10, 11, 12]]
+
+                            temp_m_list = quar_month_list[quar_selector-1]
+
+                            df = df.query('year == @year_selector')
+                            df = df.query('month == @temp_m_list')
+
+
+
 
                         df = df.query('sku_number == @sku_selector')[['marketplace',
                                                                       'date',
@@ -637,12 +686,16 @@ def render_tables_tab():
 
     with col2:
         if st.session_state['result_df'] is not None:
-            column_config = {
-                'Дата': st.column_config.DateColumn('Дата',
-                                                    format="DD/MM/YYYY"),
-                'Артикул': st.column_config.TextColumn('Артикул')
-            }
-            st.dataframe(st.session_state['result_df'],
-                         hide_index=True,
-                         use_container_width=True,
-                         column_config=column_config)
+
+            if st.session_state['result_df'].shape[0] > 0:
+                column_config = {
+                    'Дата': st.column_config.DateColumn('Дата',
+                                                        format="DD/MM/YYYY"),
+                    'Артикул': st.column_config.TextColumn('Артикул')
+                }
+                st.dataframe(st.session_state['result_df'],
+                             hide_index=True,
+                             use_container_width=True,
+                             column_config=column_config)
+            else:
+                st.write('За выбранный период информации о проблемах нет')

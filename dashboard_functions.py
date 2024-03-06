@@ -144,6 +144,23 @@ def get_months(year, initial_month=1, day_selector=False, shift=True):
             return list(range(min_month, max_month + 1))
 
 
+def get_quar(year):
+    df = render_default_dataframe(db, 'main', lexicon.columns_list)
+    month_df = df[df['date'].dt.year == year]
+    month_df['month'] = month_df['date'].dt.month
+
+    min_month = month_df['month'].min()
+    max_month = month_df['month'].max()
+
+    quarters = []
+    for month in range(min_month, max_month+1):
+        quarter = (month - 1) // 3 + 1
+        if quarter not in quarters:
+            quarters.append(quarter)
+
+    return (quarters)
+
+
 def render_period_pivot(start='2023-04-01', end='2023-05-01', period='day'):
     df = render_default_dataframe(db, 'main', lexicon.columns_list)
     df['type'] = df['type'].apply(lambda x: lexicon.lexicon_dict[x])
@@ -189,8 +206,3 @@ def render_period_pivot(start='2023-04-01', end='2023-05-01', period='day'):
         period = period.fillna(0)
 
     return period
-
-
-
-
-

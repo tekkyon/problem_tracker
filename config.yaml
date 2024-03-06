@@ -16,6 +16,12 @@ credentials:
       name: Stepan
       password: $2b$12$XXu0aSOTus3YhTa4Gzk75e/XSKDNA5YygBdEkOiBCkP7Fupu/A1ni
       telegram_id: 1356911800
+    "\u0433\u0430\u0431\u0430\u0440\u0438\u0442\u044B":
+      email: "\u0433\u0430\u0431\u0430\u0440\u0438\u0442\u044B@greenea.com"
+      logged_in: false
+      name: Vladimir
+      password: $2b$12$QWP2nb1VDnd5uCdMJetLneZZfRkwYoPBn.Ci8PKpkMr5v.JmwfE.O
+      telegram_id: 784570394
 preauthorized:
   emails:
   - deathskilled@gmail.com

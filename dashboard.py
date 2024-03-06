@@ -76,6 +76,10 @@ if st.session_state["authentication_status"]:
             render_dim()
         with tab5:
             render_settings()
+    elif st.session_state['username'] in ["\u0433\u0430\u0431\u0430\u0440\u0438\u0442\u044B"]:
+        tab1 = st.tabs(['Габариты'])
+        with tab1:
+            render_dim()
     else:
         tab1, tab2, tab3, tab4 = st.tabs(["Таблицы", "Графики и диаграммы", 'Брак B2B', 'Настройки'])
         with tab1:
