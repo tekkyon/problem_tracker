@@ -79,6 +79,25 @@ def change_role(user_id, role, db='greenea_issues.db'):
         cursor.execute(f'UPDATE users SET role = "{role}" WHERE user_id = {user_id}')
         return
 
+def change_worker(order_id, worker):
+    try:
+        with sqlite3.connect('greenea_issues.db') as con:
+            cursor = con.cursor()
+            cursor.execute(f'UPDATE main SET worker = "{worker}" WHERE bitrix_id = {order_id}')
+            return
+    except:
+        pass
+
+def change_date(order_id, date):
+    try:
+        date = str(date)[0:-9]
+        with sqlite3.connect('greenea_issues.db') as con:
+            cursor = con.cursor()
+            cursor.execute(f'UPDATE main SET date = "{date}" WHERE bitrix_id = {order_id}')
+            return
+    except:
+        print(date[0:-9])
+
 
 def change_loc(user_id, location, db='greenea_issues.db'):
     with sqlite3.connect(db) as con:
