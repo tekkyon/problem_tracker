@@ -8,11 +8,14 @@ from settings_tab import render_settings
 from refactored_tables_tab import render_tables_tab
 from cookies_auth_login_form import *
 import time
+import extra_streamlit_components as stx
 
 st.set_page_config(page_title='Dashboard',
                    layout='wide',
                    initial_sidebar_state='collapsed',
                    page_icon=':seedling:')
+
+
 
 create_session_state()
 
@@ -76,12 +79,8 @@ if st.session_state["authentication_status"]:
             render_dim()
         with tab5:
             render_settings()
-    elif st.session_state['username'] in ["\u0433\u0430\u0431\u0430\u0440\u0438\u0442\u044B"]:
-        tab1 = st.tabs(['Габариты'])
-        with tab1:
-            render_dim()
     else:
-        tab1, tab2, tab3, tab4 = st.tabs(["Таблицы", "Графики и диаграммы", 'Брак B2B', 'Настройки'])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Таблицы", "Графики и диаграммы", 'Брак B2B', 'Настройки'])
         with tab1:
             render_tables_tab()
         with tab2:
@@ -89,4 +88,6 @@ if st.session_state["authentication_status"]:
         with tab3:
             render_b2b_tab()
         with tab4:
+            render_dim()
+        with tab5:
             render_settings()

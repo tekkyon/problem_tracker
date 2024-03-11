@@ -1,5 +1,8 @@
 from datetime import datetime
+import datetime
 import numpy as np
+
+from dateutil import relativedelta
 
 import streamlit as st
 
@@ -127,6 +130,9 @@ def render_b2b_tab():
 
         save_b2b_table_btn = st.form_submit_button('Сохранить изменения',
                                                    use_container_width=True)
+
+        st.caption('Сохранение изменений в строчках с проблемой с доставкой не предусмотрено.')
+
         if save_b2b_table_btn:
             edit_b2b_dict = st.session_state["b2b_editor"]['edited_rows']
             for key, value in edit_b2b_dict.items():
@@ -143,7 +149,7 @@ def render_b2b_tab():
     else:
         start_date = f'{temp_year}-{temp_month}-01'
 
-    # datetime_object = datetime.strptime(start_date, '%Y-%m-%d')
+
     #
     # df_for_graph = render_period_pivot(start=datetime_object,
     #                                    end=datetime_object+np.timedelta64(1, 'M'),

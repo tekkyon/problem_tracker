@@ -129,63 +129,83 @@ async def choose_login(callback: CallbackQuery, state: FSMContext):
 
 @router.message(StateFilter(FSMFillForm.login_chosen))
 async def login_entered(message: Message, state: FSMContext):
-    await state.update_data(login=message.text)
+    if message.text == '/cancel':
+        await message.answer(
+            text='Регистрация отменена'
+        )
+        await state.clear()
+    else:
+        await state.update_data(login=message.text)
 
-    await message.answer(
-        text='Укажите желаемый пароль:'
-    )
-    await state.set_state(FSMFillForm.password_chosen)
+        await message.answer(
+            text='Укажите желаемый пароль:'
+        )
+        await state.set_state(FSMFillForm.password_chosen)
 
 
 @router.message(StateFilter(FSMFillForm.password_chosen))
 async def password_entered(message: Message, state: FSMContext):
-    await state.update_data(pwd=message.text)
+    if message.text == '/cancel':
+        await message.answer(
+            text='Регистрация отменена'
+        )
+        await state.clear()
 
-    await message.delete()
+    else:
+        await state.update_data(pwd=message.text)
 
-    await message.answer(
-        text='Повторите пароль:'
-    )
-    await state.set_state(FSMFillForm.password_repeat)
+        await message.delete()
+
+        await message.answer(
+            text='Повторите пароль:'
+        )
+        await state.set_state(FSMFillForm.password_repeat)
 
 
 @router.message(StateFilter(FSMFillForm.password_repeat))
 async def password_repeat(message: Message, state: FSMContext):
-    await state.update_data(pwd_repeat=message.text)
-
-    username = message.from_user.first_name
-    user_id = message.from_user.id
-
-    info = await state.get_data()
-    await message.delete()
-    login = info['login']
-    pwd = info['pwd']
-    pwd_repeat = info['pwd_repeat']
-
-    if pwd != pwd_repeat:
+    if message.text == '/cancel':
         await message.answer(
-            text='Пароли не совпадают. Введите пароль заново:'
-        )
-        await state.set_state(FSMFillForm.password_chosen)
-    else:
-        hashed_password = Hasher([pwd_repeat]).generate()[0]
-        with open('config.yaml') as file:
-            config = yaml.load(file, Loader=SafeLoader)
-
-        config['credentials']['usernames'][login] = {
-            'email': f'{login}@greenea.com',
-            'logged_in': False,
-            'name': username,
-            'password': hashed_password,
-            'telegram_id': user_id,
-        }
-        with open('config.yaml', 'w') as file:
-            yaml.dump(config, file, default_flow_style=False)
-
-        await message.answer(
-            text=f'Регистрация окончена.'
+            text='Регистрация отменена'
         )
         await state.clear()
+
+    else:
+        await state.update_data(pwd_repeat=message.text)
+
+        username = message.from_user.first_name
+        user_id = message.from_user.id
+
+        info = await state.get_data()
+        await message.delete()
+        login = info['login']
+        pwd = info['pwd']
+        pwd_repeat = info['pwd_repeat']
+
+        if pwd != pwd_repeat:
+            await message.answer(
+                text='Пароли не совпадают. Введите пароль заново:'
+            )
+            await state.set_state(FSMFillForm.password_chosen)
+        else:
+            hashed_password = Hasher([pwd_repeat]).generate()[0]
+            with open('config.yaml') as file:
+                config = yaml.load(file, Loader=SafeLoader)
+
+            config['credentials']['usernames'][login] = {
+                'email': f'{login}@greenea.com',
+                'logged_in': False,
+                'name': username,
+                'password': hashed_password,
+                'telegram_id': user_id,
+            }
+            with open('config.yaml', 'w') as file:
+                yaml.dump(config, file, default_flow_style=False)
+
+            await message.answer(
+                text=f'Регистрация окончена.'
+            )
+            await state.clear()
 
 
 @router.callback_query(StateFilter(FSMFillForm.choose_department),
