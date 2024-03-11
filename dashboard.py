@@ -67,27 +67,14 @@ elif st.session_state["authentication_status"] is False:
 
 if st.session_state["authentication_status"]:
     st.session_state['first_load'] = False
-    if st.session_state["username"] in ['tekkyon']:
-        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Таблицы", "Графики и диаграммы", 'Брак B2B', 'Габариты', "Настройки"])
-        with tab1:
-            render_tables_tab()
-        with tab2:
-            render_graphics_tab()
-        with tab3:
-            render_b2b_tab()
-        with tab4:
-            render_dim()
-        with tab5:
-            render_settings()
-    else:
-        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Таблицы", "Графики и диаграммы", 'Брак B2B', 'Настройки'])
-        with tab1:
-            render_tables_tab()
-        with tab2:
-            render_graphics_tab()
-        with tab3:
-            render_b2b_tab()
-        with tab4:
-            render_dim()
-        with tab5:
-            render_settings()
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Таблицы", "Графики и диаграммы", 'Брак B2B', 'Габариты', "Настройки"])
+    with tab1:
+        render_tables_tab()
+    with tab2:
+        render_graphics_tab()
+    with tab3:
+        render_b2b_tab()
+    with tab4:
+        render_dim()
+    with tab5:
+        render_settings()
