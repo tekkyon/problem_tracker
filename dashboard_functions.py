@@ -85,8 +85,8 @@ def change_worker(order_id, worker):
             cursor = con.cursor()
             cursor.execute(f'UPDATE main SET worker = "{worker}" WHERE bitrix_id = {order_id}')
             return
-    except:
-        pass
+    except Exception as error:
+        print(error)
 
 def change_date(order_id, date):
     try:
@@ -180,8 +180,8 @@ def get_quar(year):
     return (quarters)
 
 
-def render_period_pivot(start='2023-04-01', end='2023-05-01', period='day'):
-    df = render_default_dataframe(db, 'main', lexicon.columns_list)
+def render_period_pivot(start='2023-04-01', end='2023-05-01', period='day', b2b=False):
+    df = render_default_dataframe(db, 'main', lexicon.columns_list, b2b=b2b)
     df['type'] = df['type'].apply(lambda x: lexicon.lexicon_dict[x])
     df['marketplace'] = df['marketplace'].apply(lambda x: lexicon.lexicon_dict[x])
     df.rename(columns={'type': 'Тип проблемы',

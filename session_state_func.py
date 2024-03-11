@@ -113,3 +113,9 @@ def create_session_state():
 
     if 'admin_mode' not in st.session_state:
         st.session_state['admin_mode'] = False
+
+    if 'b2b_graph_year_selector' not in st.session_state:
+        st.session_state['b2b_graph_year_selector'] = None
+
+    if 'b2b_graph_month_selector' not in st.session_state:
+        st.session_state['b2b_graph_month_selector'] = None

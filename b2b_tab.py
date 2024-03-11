@@ -1,8 +1,12 @@
+from datetime import datetime
+import numpy as np
+
 import streamlit as st
 
 import lexicon
 from config import db
-from dashboard_functions import render_default_dataframe, change_worker, change_date
+from dashboard_functions import render_default_dataframe, change_worker, change_date, render_period_pivot, get_years, \
+    get_months
 import pandas as pd
 import altair as alt
 
@@ -26,13 +30,14 @@ def render_b2b_tab():
     df['Артикул'] = df['sku'] + df['sku_number']
     df = df.drop(['sku', 'sku_number'], axis=1)
 
+    df['year'] = df['date'].dt.year
+    df['month'] = df['date'].dt.month
+
     df = df.rename(columns={'type': 'Тип проблемы',
                             'bitrix_id': 'Номер заказа',
                             'date': 'Дата',
                             'worker': 'Ответственный',
                             'comment': 'Комментарий'})
-
-    # df['Дата'] = pd.to_datetime(df['Дата']).dt.date
 
     b2b_editor_cfg = {
         'Тип проблемы': st.column_config.SelectboxColumn(
@@ -60,23 +65,65 @@ def render_b2b_tab():
         )
     }
 
+    b2b_col1, b2b_col2, b2b_col3 = st.columns([1, 1, 1])
+
+    with b2b_col1:
+        worker_selector = st.selectbox('Ответственный',
+                                       options=['Все',
+                                                'Сборщик 1',
+                                                'Сборщик 2'])
+
+    with b2b_col2:
+        list_of_years = get_years()
+        list_of_years.sort(reverse=True)
+        st.session_state['b2b_graph_year_selector'] = st.selectbox('Год', options=list_of_years, key='hzb2b')
+
+    with b2b_col3:
+        period = 'day'
+        day_selector = True
+        list_of_month = get_months(st.session_state['b2b_graph_year_selector'], day_selector=day_selector)
+        list_of_month.sort(reverse=True)
+
+        list_of_month = list(map(lambda x: lexicon.numerical_month_dict[x], list_of_month))
+        st.session_state['b2b_graph_month_selector'] = st.selectbox('Месяц', options=list_of_month, key='b2b_smrndm')
+
+    match worker_selector:
+        case 'Все':
+            result_df = df
+        case 'Сборщик 1':
+            result_df = df.query('Ответственный == "Сборщик 1"')
+        case 'Сборщик 2':
+            result_df = df.query('Ответственный == "Сборщик 2"')
+        case _:
+            result_df = df
+
+
+    temp_year = st.session_state['b2b_graph_year_selector']
+    temp_month = lexicon.alpha_month_dict[st.session_state['b2b_graph_month_selector']]
+
+    result_df = result_df.query('year == @temp_year')
+    result_df = result_df.query('month == @temp_month')
+
     with st.form('save b2b table'):
-        b2b_editor = st.data_editor(df,
-                                    use_container_width=True,
-                                    hide_index=True,
-                                    column_config=b2b_editor_cfg,
-                                    column_order=['Тип проблемы',
+        if result_df.shape[0] > 0:
+            b2b_editor = st.data_editor(result_df,
+                                        use_container_width=True,
+                                        hide_index=True,
+                                        column_config=b2b_editor_cfg,
+                                        column_order=['Тип проблемы',
+                                                      'Номер заказа',
+                                                      'Дата',
+                                                      'Артикул',
+                                                      'Ответственный',
+                                                      'Комментарий'],
+                                        disabled=['Тип проблемы',
                                                   'Номер заказа',
-                                                  'Дата',
                                                   'Артикул',
-                                                  'Ответственный',
                                                   'Комментарий'],
-                                    disabled=['Тип проблемы',
-                                              'Номер заказа',
-                                              'Артикул',
-                                              'Комментарий'],
-                                    key='b2b_editor'
-                                    )
+                                        key='b2b_editor'
+                                        )
+        else:
+            st.write('Нет данных за выбранный период')
 
         save_b2b_table_btn = st.form_submit_button('Сохранить изменения',
                                                    use_container_width=True)
@@ -90,6 +137,18 @@ def render_b2b_tab():
                 change_date(order_id, date)
             st.toast('Данные обновлены')
 
+    if temp_month < 10:
+        start_date = f'{temp_year}-0{temp_month}-01'
 
+    else:
+        start_date = f'{temp_year}-{temp_month}-01'
 
+    # datetime_object = datetime.strptime(start_date, '%Y-%m-%d')
+    #
+    # df_for_graph = render_period_pivot(start=datetime_object,
+    #                                    end=datetime_object+np.timedelta64(1, 'M'),
+    #                                    period=period,
+    #                                    b2b=True)
+    # st.dataframe(df_for_graph)
 
+    # st.altair_chart(b2b_chart, use_container_width=True, theme=None)
