@@ -25,6 +25,9 @@ authenticator = stauth.Authenticate(
 )
 
 def render_settings():
+    if st.button('получить параметры'):
+        st.write(st.session_state['query_params'])
+
     with st.expander('Лог обновлений'):
         st.write('1.0')
         st.caption('-Добавлен раздел B2B')

@@ -23,6 +23,13 @@ with open("style.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
 
 
+if 'query_params' not in st.session_state:
+    st.session_state['query_params'] = None
+
+
+if st.query_params is not None:
+    st.session_state['query_params'] = st.query_params
+
 def update_creds():
     with open('config.yaml', 'w') as file:
         yaml.dump(config, file, default_flow_style=False)
@@ -85,4 +92,7 @@ try:
 
 except KeyError as error:
     st.error('Ошибка cookies. Необходимо удалить cookies связанные с дашбордом в настройках браузера.')
+
+except ModuleNotFoundError as error:
+    st.error('Ошибка импорта модулей.')
 
