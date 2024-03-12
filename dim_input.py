@@ -307,9 +307,6 @@ def render_dim():
         st.write(f'Общий вес: {temp_weight} кг.')
         st.write(f'Общий объем: {temp_volume / 1000000} м³.')
 
-        volume_weight_checkbox = st.checkbox('Добавить информацию об общем весе и объеме',
-                                             disabled=True)
-
         update_dims = st.button('Обновить информацию о габаритах',
                                 use_container_width=True,
                                 disabled=update_flag)
@@ -328,13 +325,12 @@ def render_dim():
                         result += f"{value[1]}*{value[2]}*{value[3]}={int(value[4] * 1000)}"
             st.session_state['result_dict'] = {}
 
-            if volume_weight_checkbox:
-                temp_volume = f'{temp_volume / 1000000} м³.'
-                temp_weight = f'{temp_weight} кг.'
-                result = f'{result} общий объем: {temp_volume}; общий вес: {temp_weight}'
+            temp_volume = f'{round(temp_volume / 1000000, 2)} м³.'
+            temp_weight = f'{temp_weight} кг.'
+            volume = f'Общий объем: {temp_volume}\nОбщий вес: {temp_weight}\nКоличество мест: {temp_qny}'
 
             update_sql_dim(order_id, result, executor_id)
-            update_dimensions(int(order_id), result)
+            update_dimensions(int(order_id), result, volume)
             st.toast('Габариты обновлены')
             time.sleep(1)
             st.rerun()

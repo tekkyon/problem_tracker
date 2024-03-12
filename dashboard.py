@@ -27,54 +27,62 @@ def update_creds():
     with open('config.yaml', 'w') as file:
         yaml.dump(config, file, default_flow_style=False)
 
+try:
+    with open('config.yaml') as file:
+        config = yaml.load(file, Loader=SafeLoader)
 
-with open('config.yaml') as file:
-    config = yaml.load(file, Loader=SafeLoader)
+    authenticator = stauth.Authenticate(
+        config['credentials'],
+        config['cookie']['name'],
+        config['cookie']['key'],
+        config['cookie']['expiry_days'],
+        config['preauthorized']
+    )
 
-authenticator = stauth.Authenticate(
-    config['credentials'],
-    config['cookie']['name'],
-    config['cookie']['key'],
-    config['cookie']['expiry_days'],
-    config['preauthorized']
-)
+    if st.session_state['first_load']:
+        my_bar = st.progress(0, text='')
 
-if st.session_state['first_load']:
-    my_bar = st.progress(0, text='')
+        for percent_complete in range(100):
+            time.sleep(0.001)
+            my_bar.progress(percent_complete + 1, text='')
+        time.sleep(1)
+        my_bar.empty()
 
-    for percent_complete in range(100):
-        time.sleep(0.001)
-        my_bar.progress(percent_complete + 1, text='')
-    time.sleep(1)
-    my_bar.empty()
+    if st.session_state["authentication_status"] is None:
+        login_col1, login_col2, login_col3 = st.columns([1, 1, 1])
+        with login_col2:
+            authenticator.login(fields={'Form name': '',
+                                        'Username': 'Логин',
+                                        'Password': 'Пароль',
+                                        'Login': 'Вход'})
 
-if st.session_state["authentication_status"] is None:
-    login_col1, login_col2, login_col3 = st.columns([1, 1, 1])
-    with login_col2:
-        authenticator.login(fields={'Form name': '',
-                                    'Username': 'Логин',
-                                    'Password': 'Пароль',
-                                    'Login': 'Вход'})
+    elif st.session_state["authentication_status"] is False:
+        st.toast('Что-то пошло не так :(')
+        login_col1, login_col2, login_col3 = st.columns([1, 1, 1])
+        with login_col2:
+            authenticator.login(fields={'Form name': '',
+                                        'Username': 'Логин',
+                                        'Password': 'Пароль',
+                                        'Login': 'Вход'})
 
-elif st.session_state["authentication_status"] is False:
-    st.toast('Что-то пошло не так :(')
-    login_col1, login_col2, login_col3 = st.columns([1, 1, 1])
-    with login_col2:
-        authenticator.login(fields={'Form name': '',
-                                    'Username': 'Логин',
-                                    'Password': 'Пароль',
-                                    'Login': 'Вход'})
+    if st.session_state["authentication_status"]:
+        st.session_state['first_load'] = False
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Таблицы",
+                                                      "Графики и диаграммы",
+                                                      'Брак B2B',
+                                                      'Габариты',
+                                                      "Настройки/Логи"])
+        with tab1:
+            render_tables_tab()
+        with tab2:
+            render_graphics_tab()
+        with tab3:
+            render_b2b_tab()
+        with tab4:
+            render_dim()
+        with tab5:
+            render_settings()
 
-if st.session_state["authentication_status"]:
-    st.session_state['first_load'] = False
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Таблицы", "Графики и диаграммы", 'Брак B2B', 'Габариты', "Настройки"])
-    with tab1:
-        render_tables_tab()
-    with tab2:
-        render_graphics_tab()
-    with tab3:
-        render_b2b_tab()
-    with tab4:
-        render_dim()
-    with tab5:
-        render_settings()
+except KeyError as error:
+    st.error('Ошибка cookies. Необходимо удалить cookies связанные с дашбордом в настройках браузера.')
+

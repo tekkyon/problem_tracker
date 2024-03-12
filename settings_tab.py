@@ -7,6 +7,8 @@ from db import read_lexicon, update_lexicon, add_new_worker
 import yaml
 from yaml.loader import SafeLoader
 
+from st_supabase_connection import SupabaseConnection
+
 db = 'greenea_issues.db'
 
 mock_admin_list = ['tekkyon']
@@ -23,6 +25,11 @@ authenticator = stauth.Authenticate(
 )
 
 def render_settings():
+    with st.expander('Лог обновлений'):
+        st.write('1.0')
+        st.caption('-Добавлен раздел B2B')
+        st.caption('-Изменен алгоритм добавления габаритов в Битрикс24')
+
     if st.session_state["username"] in mock_admin_list:
 
         st.subheader('Настройки доступа')
@@ -147,7 +154,5 @@ def render_dim_settings():
                 add_new_worker(3, firstname, lastname, position)
 
     with dim_settings_col2:
-
-
         if st.session_state['workers_table'] is not None:
             st.dataframe(st.session_state['workers_table'])

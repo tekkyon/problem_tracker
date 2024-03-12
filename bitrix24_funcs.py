@@ -1,4 +1,6 @@
 from bitrix24 import *
+import pprint
+
 
 stages_dict = {
     'NEW': 'Новая сделка',
@@ -16,6 +18,9 @@ b = Bitrix24(WEBHOOK)
 
 # leads = b.callMethod('crm.deal.update', ID='10536', fields={'UF_CRM_1704976176405': 'test3'})
 # leads = b.callMethod('crm.deal.get', ID='10484')
+# lead = b.callMethod('crm.deal.get', ID='10882')
+# pprint.pprint(lead)
+# 'UF_CRM_1710230198302'
 def get_deals_id():
     return b.callMethod('crm.deal.list', filter={'STAGE_ID': ['PREPAYMENT_INVOICE',
                                                               'UC_6T7LQR',
@@ -51,9 +56,10 @@ def init_1c_orders() -> dict:
 #         print()
 
 
-def update_dimensions(id: int, dim: str):
+def update_dimensions(id: int, dim: str, volume: str):
     try:
         b.callMethod('crm.deal.update', ID=id, fields={'UF_CRM_1704976176405': dim,
+                                                       'UF_CRM_1710230198302': volume,
                                                        'STAGE_ID': 'EXECUTING'})
     except Exception as e:
         print(e)
