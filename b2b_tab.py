@@ -13,6 +13,8 @@ from dashboard_functions import render_default_dataframe, change_worker, change_
 import pandas as pd
 import altair as alt
 
+from graph_render import draw_b2b
+
 b2b_column_list = ['type',
                    'bitrix_id',
                    'sku',
@@ -150,11 +152,14 @@ def render_b2b_tab():
         start_date = f'{temp_year}-{temp_month}-01'
 
 
-    #
-    # df_for_graph = render_period_pivot(start=datetime_object,
-    #                                    end=datetime_object+np.timedelta64(1, 'M'),
-    #                                    period=period,
-    #                                    b2b=True)
-    # st.dataframe(df_for_graph)
+    if start_date[5:7] == '12':
+        end_date = f'{temp_year+1}-01-01'
+    else:
+        end_date = f'{temp_year}-{temp_month+1}-01'
 
-    # st.altair_chart(b2b_chart, use_container_width=True, theme=None)
+    b2b_chart = draw_b2b(start=start_date,
+                         end=end_date,
+                         period=period,
+                         b2b=True)
+
+    st.altair_chart(b2b_chart, use_container_width=True, theme=None)

@@ -216,12 +216,13 @@ def render_period_pivot(start='2023-04-01', end='2023-05-01', period='day', b2b=
 
         period = period.merge(defect_df, on='Дата', how='outer')
 
-    for market in markets:
-        market_df = df[df['Маркетплейс'] == market]
-        market_df = market_df.groupby(pd.Grouper(key='Дата', freq=frequency)).agg({'Артикул': 'size'})
-        market_df = market_df.rename(columns={'Артикул': market})
+    if not b2b:
+        for market in markets:
+            market_df = df[df['Маркетплейс'] == market]
+            market_df = market_df.groupby(pd.Grouper(key='Дата', freq=frequency)).agg({'Артикул': 'size'})
+            market_df = market_df.rename(columns={'Артикул': market})
 
-        period = period.merge(market_df, on='Дата', how='outer')
-        period = period.fillna(0)
+            period = period.merge(market_df, on='Дата', how='outer')
+    period = period.fillna(0)
 
     return period

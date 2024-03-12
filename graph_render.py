@@ -110,8 +110,6 @@ def draw_problems(start='2022-12-01', end='2024-01-27', period='day'):
                            interpolate='monotone',
                            point=True).encode()
 
-
-
     result = base + lines
 
     return result
@@ -142,9 +140,10 @@ def draw_markets(start='2022-12-01',
 
     return result
 
+
 def draw_barchart(start='2024-01-01',
-                 end='2024-01-31',
-                 period='day'):
+                  end='2024-01-31',
+                  period='day'):
     source = render_period_pivot(start=start, end=end, period=period)
     source['Дата'] = source['Дата'].dt.date
 
@@ -160,3 +159,37 @@ def draw_barchart(start='2024-01-01',
     )
 
     return base
+
+
+def draw_b2b(start='2022-12-01',
+             end='2024-01-27',
+             period='day',
+             b2b=True):
+    source = render_period_pivot(start=start,
+                                 end=end,
+                                 period=period,
+                                 b2b=b2b)
+
+    source['Дата'] = source['Дата'].dt.date
+
+    domain = ['Проблема с товаром', 'Проблема со сборкой', 'Проблема с доставкой']
+    range_ = ['#0000FF', 'firebrick', 'teal']
+
+    base = alt.Chart(source).transform_fold(
+        ['Проблема с товаром',
+         'Проблема со сборкой',
+         'Проблема с доставкой']
+    ).mark_circle(opacity=0.75
+                  ).encode(
+        x=alt.X('Дата', title='Дата'),
+        y=alt.Y('value:Q', title='Количество проблем'),
+        color=alt.Color('key:N').legend(orient='bottom', title=None).scale(domain=domain, range=range_)
+    )
+
+    lines = base.mark_line(opacity=0.5,
+                           interpolate='monotone',
+                           point=True).encode()
+
+    result = base + lines
+
+    return result
