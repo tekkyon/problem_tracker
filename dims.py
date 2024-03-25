@@ -11,7 +11,7 @@ from bitrix24_funcs import update_dimensions_v
 
 from collections import Counter
 
-st.set_page_config(page_title='Габаритница',
+st.set_page_config(page_title='Габариты',
                    layout='wide',
                    initial_sidebar_state='collapsed',
                    page_icon=':package:')
