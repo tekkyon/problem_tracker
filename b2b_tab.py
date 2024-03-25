@@ -1,32 +1,15 @@
-from datetime import datetime
-import datetime
-import numpy as np
-
-from dateutil import relativedelta
 
 import streamlit as st
 
 import lexicon
 from config import db
-from dashboard_functions import render_default_dataframe, change_worker, change_date, render_period_pivot, get_years, \
+from dashboard_functions import render_default_dataframe, change_worker, change_date, get_years, \
     get_months
-import pandas as pd
-import altair as alt
 
 from graph_render import draw_b2b
 
-b2b_column_list = ['type',
-                   'bitrix_id',
-                   'sku',
-                   'sku_number',
-                   'date',
-                   'worker',
-                   'comment',
-                   ]
-
-
 def render_b2b_tab():
-    df = render_default_dataframe(db, 'main', b2b_column_list, b2b=True)
+    df = render_default_dataframe(b2b=True)
 
     df['type'] = df['type'].apply(lambda x: lexicon.lexicon_dict[x])
     df['sku'] = df['sku'].apply(lambda x: lexicon.lexicon_dict[x])
@@ -102,7 +85,6 @@ def render_b2b_tab():
         case _:
             result_df = df
 
-
     temp_year = st.session_state['b2b_graph_year_selector']
     temp_month = lexicon.alpha_month_dict[st.session_state['b2b_graph_month_selector']]
 
@@ -151,11 +133,10 @@ def render_b2b_tab():
     else:
         start_date = f'{temp_year}-{temp_month}-01'
 
-
     if start_date[5:7] == '12':
-        end_date = f'{temp_year+1}-01-01'
+        end_date = f'{temp_year + 1}-01-01'
     else:
-        end_date = f'{temp_year}-{temp_month+1}-01'
+        end_date = f'{temp_year}-{temp_month + 1}-01'
 
     b2b_chart = draw_b2b(start=start_date,
                          end=end_date,

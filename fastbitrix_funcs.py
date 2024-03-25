@@ -1,3 +1,5 @@
+import pprint
+
 from fast_bitrix24 import *
 import aiohttp
 import asyncio
@@ -17,7 +19,7 @@ stages_dict = {
 
 webhook = 'https://greenea.bitrix24.ru/rest/10798/6yb2e79n0wrdyiwe'
 
-b = Bitrix(webhook)
+# b = Bitrix(webhook)
 
 
 # async def main():
@@ -87,9 +89,18 @@ def update_dimensions(id: int, dim: str):
     b.call('crm.deal.update',
            params)
 
-
+# def update_dimensions_v(id: int, dim: str, volume: str):
+#     b = Bitrix(webhook)
+#     try:
+#         b.callMethod('crm.deal.update', ID=id, fields={'UF_CRM_1704976176405': dim,
+#                                                        'UF_CRM_1710230198302': volume,
+#                                                        'STAGE_ID': 'EXECUTING'})
+#     except Exception as e:
+#         print(e)
 # deals_id = asyncio.run(get_deals())
-# print(deals_id)
+# pprint.pprint(deals_id)
 
 # status_id = asyncio.run(get_current_status(10356))
 # print(status_id)
+
+

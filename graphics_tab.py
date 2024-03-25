@@ -8,6 +8,7 @@ from graph_render import draw_problems, draw_markets
 
 
 def render_graphics_tab():
+
     g_col1, g_col2 = st.columns([1, 1])
     with g_col1:
         st.session_state['graph_selector'] = st.selectbox('Какой график построить?',

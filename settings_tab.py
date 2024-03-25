@@ -25,8 +25,6 @@ authenticator = stauth.Authenticate(
 )
 
 def render_settings():
-    if st.button('получить параметры'):
-        st.write(st.session_state['query_params'])
 
     with st.expander('Лог обновлений'):
         st.write('1.0')
@@ -36,10 +34,7 @@ def render_settings():
     if st.session_state["username"] in mock_admin_list:
 
         st.subheader('Настройки доступа')
-        config: Config = load_config()
-        st.text_input(label='Токен телеграм бота',
-                      value=config.tg_bot.token,
-                      disabled=True)
+
 
         users_df_columns = ['username', 'user_id', 'role', 'location']
         users_df = simple_render_user(db, 'users', users_df_columns, list_mode=True, users='all')

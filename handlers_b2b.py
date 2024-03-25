@@ -242,6 +242,7 @@ async def process_b2b_comment(message: Message, state: FSMContext):
 
     await state.set_state(FSMFillForm.b2b_fill_comment)
 
+
 @router.message(StateFilter(FSMFillForm.b2b_fill_comment))
 async def process_date_sent(message: Message, state: FSMContext):
     await state.update_data(b2b_comment=message.text)
@@ -285,6 +286,7 @@ async def process_date_sent(message: Message, state: FSMContext):
 
     await state.set_state(FSMFillForm.b2b_summarize_state)
 
+
 @router.callback_query(StateFilter(FSMFillForm.b2b_summarize_state),
                        F.data.in_(['write'
                                    ]))
@@ -310,11 +312,11 @@ async def process_b2b_save(callback: CallbackQuery, state: FSMContext):
     type_of_mp = ''
     comment = info['b2b_comment']
     manager_id = callback.from_user.id
-    insert_db(DB, sku, sku_number, marketplace, date,
-                  type_of_problem, comment, type_of_mp,
-                  manager_id=manager_id,
-                  worker=worker,
-                  bitrix_id=order_number)
+    insert_db(sku, sku_number, marketplace, date,
+              type_of_problem, comment, type_of_mp,
+              manager_id=manager_id,
+              worker=worker,
+              bitrix_id=order_number)
 
     reg_button = InlineKeyboardButton(
         text='Зарегистрировать новую проблему',
@@ -331,7 +333,7 @@ async def process_b2b_save(callback: CallbackQuery, state: FSMContext):
     ]
 
     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
-#
+    #
     await callback.message.answer(
         text='<b>Информация о проблеме сохранена.</b>',
         reply_markup=markup

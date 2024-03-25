@@ -620,7 +620,7 @@ async def process_save(callback: CallbackQuery, state: FSMContext):
     type_of_mp = info['marketplace_type']
     comment = info['comment']
     manager_id = callback.from_user.id
-    insert_db(DB, sku, sku_number, marketplace, date,
+    insert_db(sku, sku_number, marketplace, date,
               type_of_problem, comment, type_of_mp,
               manager_id=manager_id,
               worker='default')

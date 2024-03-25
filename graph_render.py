@@ -164,7 +164,8 @@ def draw_barchart(start='2024-01-01',
 def draw_b2b(start='2022-12-01',
              end='2024-01-27',
              period='day',
-             b2b=True):
+             b2b=True,
+             by_problem=True):
     source = render_period_pivot(start=start,
                                  end=end,
                                  period=period,

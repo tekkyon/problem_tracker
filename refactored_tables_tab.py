@@ -3,8 +3,7 @@ import streamlit as st
 import pandas as pd
 
 import lexicon
-from config import db
-from dashboard_functions import render_default_dataframe, render_sku_table, get_months, color_marketplace, get_years, \
+from dashboard_functions import render_default_dataframe, get_months, get_years, \
     get_quar
 from table_funcs import render_common_table, render_sku_groups_table
 
@@ -45,7 +44,7 @@ def render_tables_tab():
                         st.session_state['day_1'] = st.session_state['day_selector'][0]
                         st.session_state['day_2'] = st.session_state['day_selector'][1]
 
-                st.session_state['result_df'] = render_common_table()
+                st.session_state['result_df'] = render_common_table()[['Артикул', 'Маркетплейс', 'Дата', 'Тип проблемы', 'Комментарий']]
 
                 with col2:
                     m_col1, m_col2, m_col3 = st.columns([2, 2, 2])
@@ -57,7 +56,7 @@ def render_tables_tab():
                                   value=st.session_state['period_problems'])
 
             else:
-                df = render_default_dataframe(db, 'main', lexicon.columns_list)
+                df = render_default_dataframe()
                 first_year = df['date'].min().year
                 this_year = df['date'].max().year
                 year_list = list(range(first_year, this_year + 1))
@@ -101,7 +100,7 @@ def render_tables_tab():
                         df['Дата'] = pd.to_datetime(df['Дата']).dt.date
                         df = df.sort_values(by=['Дата'], ascending=True)
                         with col2:
-                            st.session_state['result_df'] = df
+                            st.session_state['result_df'] = df[['Артикул', 'Маркетплейс', 'Дата', 'Тип проблемы', 'Комментарий']]
                             st.session_state['period_problems'] = df.shape[0]
 
                 with col2:
@@ -115,7 +114,7 @@ def render_tables_tab():
 
         elif st.session_state['stats_selector'] == 'По группам артикулов':
             st.session_state['result_df'] = None
-            df = render_default_dataframe(db, 'main', lexicon.columns_list)
+            df = render_default_dataframe()
             df = df.rename(columns={'type': 'type_of_problem'})
 
             with col2:
@@ -136,7 +135,7 @@ def render_tables_tab():
                                                             horizontal=True)
 
             if st.session_state['period_selector'] == 'За все время':
-                df = render_default_dataframe(db, 'main', lexicon.columns_list)
+                df = render_default_dataframe()
                 df.rename(columns={'type': 'type_of_problem'}, inplace=True)
                 df['month&year'] = df['date'].dt.to_period('M')
                 df['year'] = df['date'].dt.year
@@ -279,7 +278,7 @@ def render_tables_tab():
                 else:
                     selected_date_string = f'{year}-{month}'
 
-                df = render_default_dataframe(db, 'main', lexicon.columns_list)
+                df = render_default_dataframe()
                 df.rename(columns={'type': 'type_of_problem'}, inplace=True)
 
                 df['month&year'] = df['date'].dt.to_period('M')
@@ -475,7 +474,7 @@ def render_tables_tab():
                 list_of_month = get_months(year_selected,
                                            shift=False)
 
-                df = render_default_dataframe(db, 'main', lexicon.columns_list)
+                df = render_default_dataframe()
                 list_of_markets = list(df['marketplace'].unique())
                 df.rename(columns={'type': 'type_of_problem'}, inplace=True)
 
@@ -494,9 +493,7 @@ def render_tables_tab():
                             st.session_state['package_month_before'] = None
                             st.session_state['total_month_before'] = None
                         else:
-                            last_y_m_df = render_default_dataframe(db,
-                                                                   'main',
-                                                                   lexicon.columns_list)
+                            last_y_m_df = render_default_dataframe()
                             last_y_m_df['year'] = last_y_m_df['date'].dt.year
                             last_y_m_df['month'] = last_y_m_df['date'].dt.month
                             temp_y = year_selected - 1
@@ -616,7 +613,7 @@ def render_tables_tab():
 
         elif st.session_state['stats_selector'] == 'По артикулу':
             st.session_state['result_df'] = None
-            df = render_default_dataframe(db, 'main', lexicon.columns_list)
+            df = render_default_dataframe()
             df['year'] = df['date'].dt.year
             df['month'] = df['date'].dt.month
             df.rename(columns={'type': 'type_of_problem'}, inplace=True)

@@ -2,12 +2,11 @@ import streamlit as st
 import pandas as pd
 
 import lexicon
-from config import db
 from dashboard_functions import render_default_dataframe, render_sku_table
 
 
 def render_common_table():
-    df = render_default_dataframe(db, 'main', lexicon.columns_list)
+    df = render_default_dataframe()
     df['type'] = df['type'].apply(lambda x: lexicon.lexicon_dict[x])
     df['marketplace'] = df['marketplace'].apply(lambda x: lexicon.lexicon_dict[x])
     df.rename(columns={'type': 'Тип проблемы',

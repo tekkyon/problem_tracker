@@ -1,3 +1,4 @@
+import asyncio
 import sqlite3
 
 import time
@@ -5,13 +6,11 @@ import time
 import pandas as pd
 import streamlit as st
 
-from bitrix24_funcs import b, update_dimensions
-from bitrix2sql import refresh_db
+from fastbitrix_funcs import get_deals
+from bitrix24_funcs import update_dimensions_v
 
 from collections import Counter
 
-from config import task_db
-from db import update_sql_dim, get_list_of_workers, update_status
 
 if 'result_buffer_df' not in st.session_state:
     st.session_state['result_buffer_df'] = None
@@ -25,26 +24,18 @@ if 'new_number' not in st.session_state:
 
 def render_dim():
     bitcol1, bitcol2 = st.columns([2, 3])
-    with bitcol1:
-        with st.form('refresh_form'):
-            refresh_button = st.form_submit_button('Обновить буфер заказов', use_container_width=True)
-
-            if refresh_button:
-                update_list = refresh_db()
-                update_status(update_list)
-                st.toast('Список заказов обновлен')
 
     column_cfg = {
         'order_id': st.column_config.TextColumn(
             'Bitrix ID'
         ),
-        'order_number_1c': st.column_config.TextColumn(
+        'index': st.column_config.TextColumn(
             'Номер заказа 1С'
         ),
         'status': st.column_config.TextColumn(
             'Статус в Битрикс'
         ),
-        'link': st.column_config.LinkColumn(
+        'Bitrix ID': st.column_config.LinkColumn(
             'Bitrix ID',
             display_text="https://greenea\.bitrix24\.ru/crm/deal/details/(.*?)/",
             width='small'
@@ -54,34 +45,34 @@ def render_dim():
             width='small'
         )
     }
-
-    with sqlite3.connect(task_db) as db:
-        order_dataframe = pd.read_sql('SELECT * from orders', db)
-        st.session_state['old_number'] = order_dataframe.shape[0]
     with bitcol1:
-        order_dataframe['link'] = order_dataframe['order_id'].apply(
+        if 'deals got' not in st.session_state:
+            st.session_state['deals got'] = False
+
+        if 'deals_id' not in st.session_state:
+            st.session_state['deals_id'] = None
+
+        if 'order_dims_to_send' not in st.session_state:
+            st.session_state['order_dims_to_send'] = ''
+
+        if not st.session_state['deals got']:
+            st.session_state['deals_id'] = asyncio.run(get_deals())
+            st.session_state['deals got'] = True
+
+        order_df = pd.DataFrame.from_dict(st.session_state['deals_id'], orient='index').reset_index()
+        order_df['Bitrix ID'] = order_df['ID Заказа'].apply(
             lambda order: f'https://greenea.bitrix24.ru/crm/deal'
                           f'/details/{order}/')
-        temp = order_dataframe[['link', 'order_number_1c', 'status', 'dims']]
-        temp['Введены габариты'] = temp['dims'].apply(lambda x: False if x == 'None' else True)
-        temp = temp[['link', 'order_number_1c', 'status', 'Введены габариты']]
-        status_list = [
-            'Выставлен счет',
-            'Счет оплачен',
-            'Заказ поставщику',
-            'Готов к отгрузке(собран)',
-            'Оформлена накладная ТК',
-            'Рекламация'
-        ]
-        st.session_state['result_buffer_df'] = temp.query('status==@status_list')
+        order_df['Введены габариты'] = order_df['Габариты'].apply(lambda x: True if x is not None else False)
+        result_df = order_df.drop(['Габариты', 'ID Заказа'], axis=1)
+        st.dataframe(result_df, use_container_width=True, hide_index=True, column_config=column_cfg)
 
-        st.dataframe(st.session_state['result_buffer_df'],
-                     use_container_width=True,
-                     hide_index=True,
-                     column_config=column_cfg,
-                     height=555)
-        order_options = list(order_dataframe.query('status==@status_list')['order_number_1c'])
-        order_options.sort()
+        def clear_dims():
+            st.session_state['order_dims_to_send'] = ''
+
+        order_selector_list = list(result_df['index'])
+        order_selector_list.sort()
+
     with bitcol2:
         if 'qny_of_place' not in st.session_state:
             st.session_state['qny_of_place'] = 0
@@ -101,15 +92,18 @@ def render_dim():
             st.session_state['dims_loaded'] = True
 
         order_selector = st.selectbox('Выбор заказа',
-                                      options=order_options,
+                                      options=order_selector_list,
                                       on_change=refresh_dims,
                                       placeholder='Выберите заказ')
 
-        order_id = order_dataframe.loc[order_dataframe['order_number_1c'] == order_selector]['order_id']
-        order_id = str(order_id.iloc[0])
-        leads = b.callMethod('crm.deal.get', ID=order_id)
+        order_id = order_df.loc[order_df['index'] == order_selector]['Bitrix ID'].iloc[0].split('/')[6]
+        dims_from_df = order_df.loc[order_df['index'] == order_selector]['Габариты']
+        # st.write(dims_from_df.iloc[0])
 
-        dimensions = leads['UF_CRM_1704976176405']
+        # leads = b.callMethod('crm.deal.get', ID=order_id)
+        dimensions = dims_from_df.iloc[0]
+        # dimensions = leads['UF_CRM_1704976176405']
+        # st.write(dimensions)
 
         if dimensions:
             st.session_state['dims_present'] = True
@@ -291,17 +285,17 @@ def render_dim():
                 z = st.session_state[f'dims_z_{i}']
                 temp_volume += x * y * z * int(st.session_state[f'qny_{i}'])
 
-        temp_worker_df = get_list_of_workers()
-        temp_worker_df['ИмяФамилия'] = temp_worker_df['lastname'] + ' ' + temp_worker_df['firstname']
-        temp_worker_df = temp_worker_df[['ИмяФамилия', 'worker_id']]
-        temp_worker_df = temp_worker_df.set_index('ИмяФамилия')
-        temp_worker_dict = temp_worker_df.to_dict()
-
-        temp_worker_dict = temp_worker_dict['worker_id']
-        executor_selector = st.selectbox('Сборщик',
-                                         options=list(temp_worker_dict.keys()))
-
-        executor_id = temp_worker_dict[executor_selector]
+        # temp_worker_df = get_list_of_workers()
+        # temp_worker_df['ИмяФамилия'] = temp_worker_df['lastname'] + ' ' + temp_worker_df['firstname']
+        # temp_worker_df = temp_worker_df[['ИмяФамилия', 'worker_id']]
+        # temp_worker_df = temp_worker_df.set_index('ИмяФамилия')
+        # temp_worker_dict = temp_worker_df.to_dict()
+        #
+        # temp_worker_dict = temp_worker_dict['worker_id']
+        # executor_selector = st.selectbox('Сборщик',
+        #                                  options=list(temp_worker_dict.keys()))
+        #
+        # executor_id = temp_worker_dict[executor_selector]
 
         st.subheader(f'Общее количество: {temp_qny}')
         st.write(f'Общий вес: {temp_weight} кг.')
@@ -329,8 +323,8 @@ def render_dim():
             temp_weight = f'{temp_weight} кг.'
             volume = f'Общий объем: {temp_volume}\nОбщий вес: {temp_weight}\nКоличество мест: {temp_qny}'
 
-            update_sql_dim(order_id, result, executor_id)
-            update_dimensions(int(order_id), result, volume)
+            # update_sql_dim(order_id, result, 'placeholder_worker')
+            update_dimensions_v(int(order_id), result, volume)
             st.toast('Габариты обновлены')
             time.sleep(1)
             st.rerun()

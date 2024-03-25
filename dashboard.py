@@ -9,11 +9,15 @@ from refactored_tables_tab import render_tables_tab
 from cookies_auth_login_form import *
 import time
 import extra_streamlit_components as stx
+from streamlit.errors import DuplicateWidgetID, StreamlitAPIException
 
-st.set_page_config(page_title='Dashboard',
-                   layout='wide',
-                   initial_sidebar_state='collapsed',
-                   page_icon=':seedling:')
+try:
+    st.set_page_config(page_title='Dashboard',
+                       layout='wide',
+                       initial_sidebar_state='collapsed',
+                       page_icon=':seedling:')
+except (DuplicateWidgetID, StreamlitAPIException):
+    st.rerun()
 
 
 
@@ -75,10 +79,10 @@ try:
     if st.session_state["authentication_status"]:
         st.session_state['first_load'] = False
         tab1, tab2, tab3, tab4, tab5 = st.tabs(["Таблицы",
-                                                      "Графики и диаграммы",
-                                                      'Брак B2B',
-                                                      'Габариты',
-                                                      "Настройки/Логи"])
+                                                "Графики и диаграммы",
+                                                'Брак B2B',
+                                                'Габариты',
+                                                "Настройки/Логи"])
         with tab1:
             render_tables_tab()
         with tab2:
@@ -90,9 +94,15 @@ try:
         with tab5:
             render_settings()
 
-except KeyError as error:
-    st.error('Ошибка cookies. Необходимо удалить cookies связанные с дашбордом в настройках браузера.')
+# except KeyError as error:
+#     st.info(error)
+#     st.error('Ошибка cookies. Необходимо удалить cookies связанные с дашбордом в настройках браузера.')
 
 except ModuleNotFoundError as error:
     st.error('Ошибка импорта модулей.')
+
+
+
+
+
 
