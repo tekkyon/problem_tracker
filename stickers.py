@@ -20,7 +20,7 @@ stages_dict = {
 
 WEBHOOK = 'https://greenea.bitrix24.ru/rest/10798/6yb2e79n0wrdyiwe'
 
-with open("pages/style.css") as css:
+with open("style.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
 
 if 'sticker_init' not in st.session_state:
