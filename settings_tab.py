@@ -27,6 +27,9 @@ authenticator = stauth.Authenticate(
 def render_settings():
 
     with st.expander('Лог обновлений'):
+        st.write('1.1')
+        st.caption('-Добавлен раздел Этикетки')
+        st.divider()
         st.write('1.0')
         st.caption('-Добавлен раздел B2B')
         st.caption('-Изменен алгоритм добавления габаритов в Битрикс24')
