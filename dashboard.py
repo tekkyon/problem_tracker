@@ -11,6 +11,8 @@ import time
 import extra_streamlit_components as stx
 from streamlit.errors import DuplicateWidgetID, StreamlitAPIException
 
+from stickers import render_sticker_df
+
 try:
     st.set_page_config(page_title='Dashboard',
                        layout='wide',
@@ -19,24 +21,22 @@ try:
 except (DuplicateWidgetID, StreamlitAPIException):
     st.rerun()
 
-
-
 create_session_state()
 
 with open("style.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
 
-
 if 'query_params' not in st.session_state:
     st.session_state['query_params'] = None
-
 
 if st.query_params is not None:
     st.session_state['query_params'] = st.query_params
 
+
 def update_creds():
     with open('config.yaml', 'w') as file:
         yaml.dump(config, file, default_flow_style=False)
+
 
 try:
     with open('config.yaml') as file:
@@ -78,10 +78,11 @@ try:
 
     if st.session_state["authentication_status"]:
         st.session_state['first_load'] = False
-        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Таблицы",
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Таблицы",
                                                 "Графики и диаграммы",
                                                 'Брак B2B',
                                                 'Габариты',
+                                                      'Этикетки',
                                                 "Настройки/Логи"])
         with tab1:
             render_tables_tab()
@@ -92,6 +93,8 @@ try:
         with tab4:
             render_dim()
         with tab5:
+            render_sticker_df()
+        with tab6:
             render_settings()
 
 # except KeyError as error:
@@ -99,10 +102,4 @@ try:
 #     st.error('Ошибка cookies. Необходимо удалить cookies связанные с дашбордом в настройках браузера.')
 
 except ModuleNotFoundError as error:
-    st.error('Ошибка импорта модулей.')
-
-
-
-
-
-
+    st.error('Ошибка импорта модулей :(')
